@@ -17,9 +17,7 @@
 </head>
 <body class="min-h-screen bg-gray-100">
 <div id="app" class="min-h-screen">
-	<main class="container mx-auto">
-		@yield('content')
-	</main>
+	@yield('content')
 </div>
 </body>
 </html>

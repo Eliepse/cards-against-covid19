@@ -30,4 +30,10 @@ class Card extends Model
 	{
 		return $this->belongsTo(User::class, "contributor_id");
 	}
+
+
+	public function isAnswer(): bool { return $this->blanks === 0; }
+
+
+	public function isQuestion(): bool { return !$this->isAnswer(); }
 }

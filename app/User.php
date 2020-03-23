@@ -6,6 +6,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * Class User
+ *
+ * @package App
+ * @property-read int $id
+ * @property string $username
+ * @property string $password
+ */
 class User extends Authenticatable
 {
 	use Notifiable;
