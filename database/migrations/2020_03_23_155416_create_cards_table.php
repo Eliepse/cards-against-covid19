@@ -20,8 +20,9 @@ class CreateCardsTable extends Migration
 			$table->unsignedBigInteger("contributor_id")->nullable();
 			$table->timestamps();
 
-			$table->foreignId("contributor_id")
-				->constrained('users')
+			$table->foreign("contributor_id")
+				->references("id")
+				->on('users')
 				->onUpdate("cascade")
 				->onDelete("set null");
 		});
