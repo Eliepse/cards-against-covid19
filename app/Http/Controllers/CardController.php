@@ -24,11 +24,26 @@ class CardController extends Controller
 	/**
 	 * Display a listing of the resource.
 	 *
-	 * @return Factory|View
+	 * @param Request $request
+	 *
+	 * @return Factory|JsonResponse|View
 	 */
-	public function index()
+	public function index(Request $request)
 	{
-		$cards = Card::with("contributor:id,username")->get();
+		$query = Card::query()
+			->with("contributor:id,username");
+
+		if ($user_id = $request->query('user_id'))
+			$query->where('contributor_id', $user_id);
+
+		$query->limit($request->query('limit', 0));
+		$query->orderBy($request->query('orderBy', 'created_at'), $request->query('order', 'DESC'));
+
+		$cards = $query->get();
+
+		if ($request->wantsJson())
+			return response()->json(["cards" => $cards]);
+
 		return view("cards.index", ["cards" => $cards]);
 	}
 
