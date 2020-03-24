@@ -80,7 +80,7 @@
 				this.errorMsg = "";
 				axios.post("/cards", {"text": this.text.trim()})
 					.then((response) => {
-						this.lastcreated.unshift(response.data.card);
+						this.lastCreated.unshift(response.data.card);
 						this.text = "";
 						this.sending = false;
 					})
