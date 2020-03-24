@@ -9,13 +9,13 @@
 
 		<div class="max-w-xl m-auto p-6">
 			<div class="flex justify-between items-center">
-				<card :text.sync="text" :placeholder="placeholder"></card>
+				<card :card="editCard" :placeholder="placeholder"></card>
 				<form @submit.prevent="send" class="my-6 text-center">
 					<label class="text-lg"
 					       for="text">Texte de la carte</label><br>
 					<textarea id="text"
 					          name="text"
-					          v-model="text"
+					          v-model="editCard.text"
 					          :disabled="sending"
 					          class="resize-none px-3 py-2 my-4 placeholder-gray-600 h-24 rounded-md border border-gray-300"
 					          :placeholder="placeholder"></textarea><br>
@@ -34,7 +34,7 @@
 		<h2 class="max-w-sm m-auto mb-2 text-center text-xl text-blue-700">Mes derniers ajouts</h2>
 
 		<div class="flex flex-row flex-wrap justify-center">
-			<card v-for="(card, index) in lastCreated" :key="index" :text="card.text" :contributor="card.contributor"></card>
+			<card v-for="(card, index) in lastCreated" :key="index" :card="card"></card>
 		</div>
 
 	</main>
@@ -47,7 +47,7 @@
 			axios.get('/cards', {
 				params: {
 					"user_id": this.userid,
-					limit: 5
+					limit: 50
 				}
 			})
 				.then((response) => {
@@ -66,7 +66,9 @@
 		},
 		data() {
 			return {
-				text: null,
+				editCard: {
+					text: null
+				},
 				sending: false,
 				errorMsg: "",
 				placeholder: 'Ajouter des ____ pour rédiger une carte à trous.',
@@ -75,13 +77,13 @@
 		},
 		methods: {
 			send: function () {
-				if (this.sending || this.text.trim().length < 6) return;
+				if (this.sending || this.editCard.text.trim().length < 6) return;
 				this.sending = true;
 				this.errorMsg = "";
-				axios.post("/cards", {"text": this.text.trim()})
+				axios.post("/cards", {"text": this.editCard.text.trim()})
 					.then((response) => {
 						this.lastCreated.unshift(response.data.card);
-						this.text = "";
+						this.editCard.text = "";
 						this.sending = false;
 					})
 					.catch((response) => {
