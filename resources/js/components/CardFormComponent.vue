@@ -34,7 +34,7 @@
 		<h2 class="max-w-sm m-auto mb-2 text-center text-xl text-blue-700">Mes derniers ajouts</h2>
 
 		<div class="flex flex-row flex-wrap justify-center">
-			<card v-for="(card, index) in lastcreated" :key="index" :text="card.text" :contributor="card.contributor"></card>
+			<card v-for="(card, index) in lastCreated" :key="index" :text="card.text" :contributor="card.contributor"></card>
 		</div>
 
 	</main>
@@ -43,7 +43,22 @@
 <script>
 	export default {
 		name: "CardFormComponent",
+		created() {
+			axios.get('/cards', {
+				params: {
+					"user_id": this.userid,
+					limit: 5
+				}
+			})
+				.then((response) => {
+					this.lastCreated = response.data.cards;
+				})
+		},
 		props: {
+			userid: {
+				type: Number,
+				required: true
+			},
 			lastcreated: {
 				type: Array,
 				default: function () {return []; }
@@ -54,7 +69,8 @@
 				text: null,
 				sending: false,
 				errorMsg: "",
-				placeholder: 'Ajouter des ____ pour rédiger une carte à trous.'
+				placeholder: 'Ajouter des ____ pour rédiger une carte à trous.',
+				lastCreated: this.lastcreated
 			}
 		},
 		methods: {
