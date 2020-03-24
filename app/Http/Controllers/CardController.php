@@ -36,7 +36,7 @@ class CardController extends Controller
 		if ($user_id = $request->query('user_id'))
 			$query->where('contributor_id', $user_id);
 
-		$query->limit($request->query('limit', 0));
+		$query->limit($request->query('limit', -1));
 		$query->orderBy($request->query('orderBy', 'created_at'), $request->query('order', 'DESC'));
 
 		$cards = $query->get();
