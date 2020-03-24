@@ -8,7 +8,7 @@
 
 @section("content")
 	{{--	<card-form></card-form>--}}
-	<card-form :lastcreated='@json($cards->map(fn ($card) => ["text" => $card->text, "contributor" => optional($card->contributor)->username]))'>
+	<card-form :lastcreated='@json($cards->map(function ($card)  {return ["text" => $card->text, "contributor" => optional($card->contributor)->username];}))'>
 
 	</card-form>
 @endsection

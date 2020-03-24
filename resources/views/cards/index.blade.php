@@ -7,7 +7,7 @@
 @extends("layouts.app")
 
 @section("content")
-	@foreach($cards->groupBy(fn ($card) => $card->isAnswer())->reverse() as $deck)
+	@foreach($cards->groupBy(function ($card)  {return $card->isAnswer();})->reverse() as $deck)
 		<main class="container mx-auto flex flex-row text-lg flex-wrap py-10">
 
 			@foreach($deck as $card)
