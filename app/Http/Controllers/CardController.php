@@ -84,9 +84,6 @@ class CardController extends Controller
 			throw new Error("Error while saving the card in the database.");
 		}
 
-		return response()->json(["card" => [
-			"text" => $card->text,
-			"contributor" => $card->contributor->username,
-		]]);
+		return response()->json(["card" => $card->load("contributor")]);
 	}
 }
