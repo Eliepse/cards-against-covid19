@@ -30,9 +30,6 @@
 			},
 			editable: false
 		},
-		created() {
-			console.log(this.card)
-		},
 		computed: {
 			isQuestion: function () {
 				return new RegExp(/_{2,}/gm).test(this.card.text)
