@@ -18,8 +18,19 @@
 <body class="min-h-screen bg-gray-100">
 @include("layouts.navigation")
 <div id="app" class="min-h-screen pt-12 flex items-center justify-center flex-col">
-	<h1 class="text-4xl mb-4">Cards Against COVID-19</h1>
-	<p class="">Un jeu confiné par Eliepse et agrémenté par tous !</p>
+	<h1 class="text-4xl mb-4 text-center">Cards Against COVID-19</h1>
+	<p class="text-center">Un jeu confiné par Eliepse et agrémenté par tous !</p>
+	<hr class="max-w-xs my-8">
+	<p class="text-gray-700 text-sm text-center">
+		Ce jeu est basé sur
+		<cite>
+			<a href="https://www.cardsagainsthumanity.com"
+			   class="underline hover:text-blue-700"
+			   rel="noreferrer">
+				Cards Against Humanity.
+			</a>
+		</cite>
+	</p>
 </div>
 </body>
 </html>
