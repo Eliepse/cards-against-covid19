@@ -11,7 +11,7 @@
 						focus:outline-none focus:shadow-outline block my-4"
 				   href="{{ action([\App\Http\Controllers\CardController::class, 'index']) }}">Liste des cartes</a>
 				<hr class="my-4">
-				<p>{{ $total }} cartes dans la base de donnée dont {{ $total }} créées par vous.</p>
+				<p>{{ $total }} cartes dans la base de donnée dont {{ $totalSelf }} créées par vous.</p>
 			</div>
 		</div>
 	</div>
