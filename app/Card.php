@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -36,4 +37,16 @@ class Card extends Model
 
 
 	public function isQuestion(): bool { return !$this->isAnswer(); }
+
+
+	public function scopeWhite(Builder $query): Builder
+	{
+		return $query->where("blanks", 0);
+	}
+
+
+	public function scopeBlack(Builder $query): Builder
+	{
+		return $query->where("blanks", ">", 0);
+	}
 }
