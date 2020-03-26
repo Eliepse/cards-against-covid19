@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-	<div class="container mt-8 m-auto flex items-center justify-center">
+	<div class="container min-h-screen pt-12 m-auto flex items-center justify-center">
 		<div class="w-full max-w-xs">
 			<div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
 				<a class="bg-blue-500 hover:bg-blue-700 text-white font-bold text-center py-3 px-4 rounded

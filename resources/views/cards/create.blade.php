@@ -7,5 +7,7 @@
 @extends("layouts.app")
 
 @section("content")
-	<card-form :userid="{!! auth()->user()->id !!}"></card-form>
+	<div class="min-h-screen pt-12">
+		<card-form :userid="{!! auth()->user()->id !!}"></card-form>
+	</div>
 @endsection
