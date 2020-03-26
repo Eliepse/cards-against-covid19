@@ -9,7 +9,7 @@
 
 		<div class="max-w-xl m-auto p-6">
 			<div class="flex justify-between items-center">
-				<card :card="editCard" :placeholder="placeholder"></card>
+				<Card :card="editCard" :placeholder="placeholder"></Card>
 				<form @submit.prevent="send" class="my-6 text-center">
 					<label class="text-lg"
 					       for="text">Texte de la carte</label><br>
@@ -34,15 +34,17 @@
 		<h2 class="max-w-sm m-auto mb-2 text-center text-xl text-blue-700">Mes derniers ajouts</h2>
 
 		<div class="flex flex-row flex-wrap justify-center">
-			<card v-for="(card, index) in lastCreated" :key="index" :card="card"></card>
+			<Card v-for="(card, index) in lastCreated" :key="index" :card="card"></Card>
 		</div>
 
 	</main>
 </template>
 
 <script>
+	import Card from './CardComponent'
+
 	export default {
-		name: "CardFormComponent",
+		components: {Card},
 		created() {
 			axios.get('/cards', {
 				params: {
