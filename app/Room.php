@@ -53,4 +53,16 @@ class Room extends Model
 		$this->url = Str::random(12);
 		return $this->url;
 	}
+
+
+	public function isWaiting(): bool
+	{
+		return $this->state === self::STATE_WAITING;
+	}
+
+
+	public function isTerminated(): bool
+	{
+		return $this->state === self::STATE_TERMINATED;
+	}
 }

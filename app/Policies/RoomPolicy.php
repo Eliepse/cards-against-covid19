@@ -126,13 +126,18 @@ class RoomPolicy
 
 	public function join(User $user, Room $room): bool
 	{
-		if ($room->players->count() < $room->max_players) {
-			return true;
+		if($room->isTerminated()) {
+			return false;
 		}
 
 		if ($room->players->firstWhere('id', $user->id)) {
 			return true;
 		}
+
+		if ($room->isWaiting() && $room->players->count() < $room->max_players) {
+			return true;
+		}
+
 
 		return false;
 	}
