@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 /**
  * Class Room
@@ -27,6 +28,10 @@ use Illuminate\Support\Carbon;
  */
 class Room extends Model
 {
+	public const STATE_WAITING = 'waiting';
+	public const STATE_PLAYING = 'playing';
+	public const STATE_TERMINATED = 'terminated';
+
 	protected $guarded = [];
 
 
@@ -35,10 +40,17 @@ class Room extends Model
 		return $this->belongsToMany(User::class, "room_user")
 			->withPivot(["score"]);
 	}
-	
+
 
 	public function host(): BelongsTo
 	{
 		return $this->belongsTo(User::class, "host_id");
+	}
+
+
+	public function generateUrl(): string
+	{
+		$this->url = Str::random(12);
+		return $this->url;
 	}
 }

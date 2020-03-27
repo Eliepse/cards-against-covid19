@@ -1,4 +1,5 @@
 <?php
+/** @noinspection PhpUnused */
 
 namespace App\Policies;
 
@@ -18,9 +19,9 @@ class RoomPolicy
 	 *
 	 * @return mixed
 	 */
-	public function viewAny(User $user)
+	public function viewAny(User $user): bool
 	{
-		//
+		return false;
 	}
 
 
@@ -32,9 +33,17 @@ class RoomPolicy
 	 *
 	 * @return mixed
 	 */
-	public function view(User $user, Room $room)
+	public function view(User $user, Room $room): bool
 	{
-		//
+		if ($room->host->is($user)) {
+			return true;
+		}
+
+		if ($room->players->firstWhere('id', $user->id)) {
+			return true;
+		}
+
+		return false;
 	}
 
 
@@ -45,9 +54,17 @@ class RoomPolicy
 	 *
 	 * @return mixed
 	 */
-	public function create(User $user)
+	public function create(User $user): bool
 	{
-		//
+		if ($user->hostedRooms()->where('state', '!=', Room::STATE_TERMINATED)->exists()) {
+			return false;
+		}
+
+		if ($user->playedRooms()->where('state', '!=', Room::STATE_TERMINATED)->exists()) {
+			return false;
+		}
+
+		return true;
 	}
 
 
@@ -59,9 +76,9 @@ class RoomPolicy
 	 *
 	 * @return mixed
 	 */
-	public function update(User $user, Room $room)
+	public function update(User $user, Room $room): bool
 	{
-		//
+		return false;
 	}
 
 
@@ -73,9 +90,9 @@ class RoomPolicy
 	 *
 	 * @return mixed
 	 */
-	public function delete(User $user, Room $room)
+	public function delete(User $user, Room $room): bool
 	{
-		//
+		return false;
 	}
 
 
@@ -87,9 +104,9 @@ class RoomPolicy
 	 *
 	 * @return mixed
 	 */
-	public function restore(User $user, Room $room)
+	public function restore(User $user, Room $room): bool
 	{
-		//
+		return false;
 	}
 
 
@@ -101,34 +118,49 @@ class RoomPolicy
 	 *
 	 * @return mixed
 	 */
-	public function forceDelete(User $user, Room $room)
+	public function forceDelete(User $user, Room $room): bool
 	{
-		//
+		return false;
 	}
 
 
-	public function drawBlackCard(User $user, Room $room)
+	public function join(User $user, Room $room): bool
 	{
-		//
+		if ($room->players->count() < $room->max_players) {
+			return true;
+		}
+
+		if ($room->players->firstWhere('id', $user->id)) {
+			return true;
+		}
+
+		return false;
 	}
 
 
-	public function drawWhiteCard(User $user, Room $room)
+	public function drawBlackCard(User $user, Room $room): bool
 	{
-		//
+		return false;
 	}
 
 
-	public function selectRoundWinner(User $user, Room $room)
+	public function drawWhiteCard(User $user, Room $room): bool
 	{
-		//
+		return false;
 	}
 
 
-	public function forceChangeState(User $user, Room $room)
+	public function selectRoundWinner(User $user, Room $room): bool
+	{
+		return false;
+	}
+
+
+	public function forceChangeState(User $user, Room $room): bool
 	{
 		// handle force starting the game
 		// handle force new round ?
 		// handle force terminate the game -> scores page
+		return false;
 	}
 }
