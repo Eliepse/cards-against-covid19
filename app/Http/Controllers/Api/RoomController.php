@@ -8,6 +8,7 @@ use App\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class RoomController
 {
@@ -18,6 +19,7 @@ class RoomController
 
 
 	/**
+	 * @param Request $request
 	 * @param Room $room
 	 *
 	 * @return array
@@ -29,10 +31,12 @@ class RoomController
 		$room->loadMissing(['host', 'players']);
 
 		// TODO: fetch room state's data from cache
+
+//		$cache_key = "App.Room.{$room->id}";
+
 		return [
 			"room" => $room,
 			"state" => $room->state,
-			"connected_players" => [$request->user()],
 			"black_card" => null,
 		];
 	}

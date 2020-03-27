@@ -1,5 +1,7 @@
 <?php
 
+use App\Room;
+use App\User;
 use Illuminate\Support\Facades\Broadcast;
 
 /*
@@ -13,6 +15,13 @@ use Illuminate\Support\Facades\Broadcast;
 |
 */
 
-Broadcast::channel('App.User.{id}', function ($user, $id) {
-    return (int) $user->id === (int) $id;
+//Broadcast::channel('App.User.{id}', function ($user, $id) {
+//    return (int) $user->id === (int) $id;
+//});
+
+Broadcast::channel('App.Room.{id}', function (User $user, $id) {
+	if ($user->can('join', Room::findOrFail($id))) {
+		return $user->toArray();
+	}
+	return false;
 });

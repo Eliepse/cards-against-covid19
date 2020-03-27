@@ -14,3 +14,4 @@ yarn-error.log
 public/css
 public/js
 mix-manifest.json
+laravel-echo-server.lock

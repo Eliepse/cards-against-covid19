@@ -28,7 +28,6 @@ class RoomControllerTest extends TestCase
 
 		$res->assertOk();
 		$this->assertEquals($room->toArray(), $res->json("room"));
-		$this->assertEquals([$user->toArray()], $res->json("connected_players"));
 		$this->assertNull($res->json("black_card"));
 	}
 
@@ -49,7 +48,6 @@ class RoomControllerTest extends TestCase
 
 		$res->assertOk();
 		$this->assertEquals($room->toArray(), $res->json("room"));
-		$this->assertEquals([$user->toArray()], $res->json("connected_players"));
 		$this->assertNull($res->json("black_card"));
 	}
 
