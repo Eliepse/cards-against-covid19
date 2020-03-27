@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CardController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\RoomController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -33,3 +34,5 @@ Route::get('/home', [HomeController::class, 'index'])->name('home');
 Route::get('/cards', [CardController::class, 'index']);
 Route::get('/cards/new', [CardController::class, 'create']);
 Route::post('/cards', [CardController::class, 'store']);
+
+Route::get('/room/{room}', [RoomController::class, 'show']);
