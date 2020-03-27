@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Passport\HasApiTokens;
 
 /**
  * Class User
@@ -14,20 +15,19 @@ use Illuminate\Notifications\Notifiable;
  * @property-read int $id
  * @property string $username
  * @property string $password
+ * // Relations
  * @property Collection cards
  */
 class User extends Authenticatable
 {
-	use Notifiable;
+	use Notifiable, HasApiTokens;
 
 	/**
 	 * The attributes that are mass assignable.
 	 *
 	 * @var array
 	 */
-	protected $fillable = [
-		'username', 'password',
-	];
+	protected $fillable = ['username', 'password',];
 
 	/**
 	 * The attributes that should be hidden for arrays.
