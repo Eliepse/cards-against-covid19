@@ -11,12 +11,7 @@ export default new Vuex.Store({
 		blackCard: null,
 		room: {},
 		roomState: null,
-		players: [
-			{"username": "Adr1"},
-			{"username": "Agathe"},
-			{"username": "Evou"},
-			{"username": "Pangolin"},
-		]
+		players: []
 	},
 	getters: {
 		roomState: state => state.roomState,
@@ -33,11 +28,13 @@ export default new Vuex.Store({
 			if (state.players.find(p => p.id === player.id)) {
 				return;
 			}
-
 			state.players.push(player);
 		},
-		setPlayers: (state, {players}) => {
-			state.players = players;
+		removePlayer: (state, {player}) => {
+			if (!state.players.find(p => p.id === player.id)) {
+				return;
+			}
+			state.players.splice(state.players.findIndex(p => p.id === player.id), 1);
 		}
 	},
 	actions: {
@@ -46,7 +43,7 @@ export default new Vuex.Store({
 				const response = await axios.get('/api/room/' + id);
 				context.commit('setRoom', {room: response.data.room});
 				context.commit('setBlackCard', {card: response.data.black_card});
-				context.commit('setPlayers', {players: response.data.connected_players});
+				//context.commit('setPlayers', {players: response.data.connected_players});
 				context.commit('setRoomState', {state: response.data.state});
 				// load room state
 			} catch (error) {
