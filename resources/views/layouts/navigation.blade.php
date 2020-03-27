@@ -13,7 +13,7 @@
 	@guest
 		<div>
 			<a class="text-sm uppercase text-gray-700 hover:text-gray-900 mx-6" href="{{ route('login') }}">Login</a>
-			<a class="text-sm uppercase text-gray-700 hover:text-gray-900" href="{{ route('login') }}">Register</a>
+			<a class="text-sm uppercase text-gray-700 hover:text-gray-900" href="{{ route('register') }}">Register</a>
 		</div>
 	@endguest
 </div>
