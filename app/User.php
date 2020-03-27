@@ -3,6 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -16,7 +17,9 @@ use Laravel\Passport\HasApiTokens;
  * @property string $username
  * @property string $password
  * // Relations
- * @property Collection cards
+ * @property Collection $cards
+ * @property Collection $hostedRooms
+ * @property Collection $playedRooms
  */
 class User extends Authenticatable
 {
@@ -35,12 +38,27 @@ class User extends Authenticatable
 	 * @var array
 	 */
 	protected $hidden = [
-		'password', 'remember_token',
+		'created_at',
+		'updated_at',
+		'password',
+		'remember_token',
 	];
 
 
 	public function cards(): HasMany
 	{
 		return $this->hasMany(Card::class, "contributor_id");
+	}
+
+
+	public function hostedRooms(): HasMany
+	{
+		return $this->hasMany(Room::class, 'host_id');
+	}
+
+
+	public function playedRooms(): BelongsToMany
+	{
+		return $this->belongsToMany(Room::class);
 	}
 }
