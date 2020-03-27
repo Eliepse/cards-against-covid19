@@ -1,8 +1,9 @@
 <template>
-	<div v-bind:class="{ 'bg-white text-gray-700': !isQuestion, 'bg-gray-900 text-gray-100': isQuestion }"
-	     class="w-56 h-64 m-4 border border-gray-300 rounded-lg p-5 flex flex-col justify-between shadow-lg text-lg">
-		<!--		<p v-if="editable" class="border" contenteditable="true" @input="updateText"></p>-->
-		<p :class="{'text-gray-500':placeholder && !card.text}">{{ placeholder && !card.text ? placeholder : card.text }}</p>
+	<div v-bind:class="classes"
+	     class="card inline-block m-4 border border-gray-300 rounded-lg flex flex-col justify-between shadow-lg p-5 text-lg text-left">
+		<p :class="{'text-gray-500':placeholder && !card.text}">
+			{{ placeholder && !card.text ? placeholder : card.text }}
+		</p>
 		<cite v-if="card.contributor" class="text-gray-500 d-block mt-2 text-xs text-right italic">
 			par {{ card.contributor.username }}
 		</cite>
@@ -11,7 +12,6 @@
 
 <script>
 	export default {
-		name: "CardComponent",
 		props: {
 			card: {
 				type: Object,
@@ -30,9 +30,19 @@
 			},
 			editable: false
 		},
+		data() {
+			return {
+				hovered: false
+			}
+		},
 		computed: {
-			isQuestion: function () {
+			isBlack: function () {
 				return new RegExp(/_{2,}/gm).test(this.card.text)
+			},
+			classes() {
+				let classes = [];
+				classes.push(this.isBlack ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-700');
+				return classes;
 			}
 		},
 		methods: {
@@ -44,5 +54,9 @@
 </script>
 
 <style scoped>
-
+	.card {
+		width: 11em;
+		height: 12.5em;
+		user-select: none;
+	}
 </style>
