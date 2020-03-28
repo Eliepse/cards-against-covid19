@@ -55,11 +55,6 @@ class NewRoundEvent implements ShouldBroadcast
 
 	public function broadcastWith(): array
 	{
-		$cards = Card::query()
-			->whereIn('id', $this->room->hands->getForUser($this->user))
-			->select(['id', 'text'])
-			->get();
-
 		return [
 			"room" => $this->room,
 			"round" => $this->room->round,
