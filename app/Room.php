@@ -2,6 +2,9 @@
 
 namespace App;
 
+use App\Cache\RoomDump;
+use App\Cache\RoomHands;
+use App\Cache\RoomRound;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -26,6 +29,9 @@ use Illuminate\Support\Str;
  * @property Collection $players
  * @property Carbon $created_at
  * @property Carbon $updated_at
+ * @property-read RoomRound $round
+ * @property-read RoomHands $hands
+ * @property-read RoomDump $dump
  */
 class Room extends Model
 {
@@ -74,6 +80,27 @@ class Room extends Model
 		$this->juge()->associate($juge);
 
 		return $this->juge;
+	}
+
+
+	/** @noinspection PhpUnused */
+	public function getRoundAttribute(): RoomRound
+	{
+		return RoomRound::find($this);
+	}
+
+
+	/** @noinspection PhpUnused */
+	public function getHandsAttribute(): RoomHands
+	{
+		return RoomHands::find($this);
+	}
+
+
+	/** @noinspection PhpUnused */
+	public function getDumpAttribute(): RoomDump
+	{
+		return RoomDump::find($this);
 	}
 
 

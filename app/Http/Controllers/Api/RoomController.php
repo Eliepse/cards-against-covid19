@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Cache\RoomRound;
+use App\Card;
+use App\Events\Room\NewRoundEvent;
 use App\Events\Room\StateChangedEvent;
 use App\Http\Requests\StoreRoomRequest;
 use App\Room;
@@ -9,6 +12,7 @@ use App\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class RoomController
 {
@@ -31,12 +35,9 @@ class RoomController
 
 		// TODO: fetch room state's data from cache
 
-//		$cache_key = "App.Room.{$room->id}";
-
 		return [
 			"room" => $room,
-			"state" => $room->state,
-			"black_card" => null,
+			"round" => $room->round,
 		];
 	}
 
@@ -57,7 +58,7 @@ class RoomController
 		}
 
 		if (!$room->isWaiting()) {
-			throw new AuthorizationException("This is room is not waiting players anymore.");
+			throw new AuthorizationException("This room is not waiting players anymore.");
 		}
 
 		if ($room->players->count() < 2) {
@@ -69,10 +70,27 @@ class RoomController
 		$room->changeToNextJuge();
 		$room->save();
 
+		$card_stacks = Card::query()
+			->select(['id'])
+			->where("blanks", 0)
+			->inRandomOrder()
+			->limit($room->players->count() * $room->hand_size)
+			->get()
+			->chunk($room->hand_size);
+
+		$round = $room->round;
+		$round->state = RoomRound::STATE_DRAW_BLACK_CARD;
+		$round->save();
+
+		$hands = $room->hands;
+		$room->players->each(fn($p, $i) => $hands->setForUser($p, $card_stacks->get($i)->pluck("id")->toArray()));
+		$hands->save();
+
 		broadcast(new StateChangedEvent($room))->toOthers();
+		$room->players->each(fn(User $player) => broadcast(new NewRoundEvent($room, $player)));
 
 		return [
-			"state" => $room->state,
+			"round" => $round,
 			"room" => $room,
 		];
 	}
