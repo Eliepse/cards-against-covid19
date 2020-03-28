@@ -28,7 +28,6 @@ class RoomController
 	public function show(Request $request, Room $room): array
 	{
 		$this->authorize('view', $room);
-		$room->loadMissing(['host', 'players']);
 
 		// TODO: fetch room state's data from cache
 

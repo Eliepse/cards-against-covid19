@@ -34,7 +34,7 @@ class Room extends Model
 	public const STATE_TERMINATED = 'terminated';
 
 	protected $guarded = [];
-	protected $with = ['host', 'players'];
+	protected $with = ['host', 'players', 'juge'];
 
 
 	public function players(): BelongsToMany
@@ -69,7 +69,7 @@ class Room extends Model
 			return null;
 		}
 
-		$index = $this->players->search(fn($player) => $this->juge->is($player)) || 0;
+		$index = $this->players->search(fn($player) => $player->is($this->juge)) || 0;
 		$juge = $this->players->get($index + 1, 0);
 		$this->juge()->associate($juge);
 
