@@ -125,7 +125,12 @@
 				});
 
 			echo.private(this.private_channel)
-				.listen("NewRoundEvent", (ev) => console.log(ev))
+				.listen("NewRoundEvent", ({room, round, hand}) => {
+					this.$store.commit('setRoom', {room});
+					this.$store.commit('setRound', {round});
+					this.$store.commit('setHand', {hand});
+					// TODO: verifier la réception de cet événement et debug
+				})
 		},
 		data() {
 			return {

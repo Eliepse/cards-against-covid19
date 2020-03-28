@@ -61,8 +61,9 @@ class NewRoundEvent implements ShouldBroadcast
 			->get();
 
 		return [
+			"room" => $this->room,
 			"round" => $this->room->round,
-			"hand" => $cards,
+			"hand" => Card::fetchHandCardsList($this->room->hands->getForUser($this->user)),
 		];
 	}
 }

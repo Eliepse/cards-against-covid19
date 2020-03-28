@@ -63,6 +63,7 @@ export default new Vuex.Store({
 				const response = await axios.get(`/api/room/${id}`);
 				ctx.commit('setRoom', {room: response.data.room});
 				ctx.commit('setRound', {round: response.data.round});
+				ctx.commit('setHand', {cards: response.data.hand});
 			} catch (error) {
 				// TODO: handle error
 				console.error(error);
@@ -95,6 +96,7 @@ export default new Vuex.Store({
 				const response = await axios.post('/api/room/' + ctx.state.room.id + '/start');
 				ctx.commit('setRoom', {room: response.data.room});
 				ctx.commit('setRound', {round: response.data.round});
+				ctx.commit('setHand', {cards: response.data.hand});
 				return true;
 			} catch (error) {
 				console.error(error.response.data.message);
