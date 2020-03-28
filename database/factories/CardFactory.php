@@ -10,7 +10,11 @@ use Illuminate\Database\Eloquent\Factory;
 $factory->define(Card::class, function (Faker $faker) {
 
 	$card = new Card();
-	$card->text = $faker->sentence;
+
+	if (random_int(1, 3) === 1)
+		$card->text = $faker->sentence(4) . "__" . ($faker->boolean ? $faker->sentence(4) . "__" : "");
+	else
+		$card->text = $faker->sentence;
 
 	return [
 		"text" => $card->text,
