@@ -59,6 +59,20 @@ export default new Vuex.Store({
 			} catch (e) {
 				console.error(e)
 			}
+		},
+		startRoom: async function (ctx) {
+			if (!ctx.state.room.id) {
+				console.error("The room has not been loaded.");
+				return {"message": "The room has not been loaded."};
+			}
+			try {
+				const response = await axios.post('/api/room/' + ctx.state.room.id + '/start');
+				ctx.commit('setRoomState', {state: response.data.state});
+				return true;
+			} catch (error) {
+				console.error(error.response.data.message);
+				return {"message": error.response.data.message};
+			}
 		}
 	}
 })

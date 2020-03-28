@@ -107,6 +107,7 @@
 				.joining(player => this.$store.commit('addConnectedPlayer', {player}))
 				.leaving(player => this.$store.commit('removeConnectedPlayer', {player}))
 				.listen("PlayerJoinedEvent", ({players}) => this.$store.commit('addPlayers', {players}))
+				.listen("StateChangedEvent", ({state}) => this.$store.commit('setRoomState', {state}))
 		},
 		data() {
 			return {
@@ -144,6 +145,13 @@
 			startRoom() {
 				if (this.starting) return;
 				this.starting = true;
+				this.$store.dispatch('startRoom')
+					.then((rtn) => {
+						if (rtn !== true) {
+							alert(rtn.message);
+							this.starting = false
+						}
+					})
 			}
 		},
 		computed: mapState({

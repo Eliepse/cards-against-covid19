@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\Room\StateChangedEvent;
 use App\Http\Requests\StoreRoomRequest;
 use App\Room;
 use App\User;
@@ -64,4 +65,34 @@ class RoomController
 	}
 
 
+	/**
+	 * @param Request $request
+	 * @param Room $room
+	 *
+	 * @return array
+	 * @throws AuthorizationException
+	 */
+	public function startPlaying(Request $request, Room $room)
+	{
+		// Check if the person have the RIGHT to do before checking if it's possible to do it
+
+		if (!$room->host->is($request->user())) {
+			throw new AuthorizationException("Only the host can start the game.");
+		}
+
+		if (!$room->isWaiting()) {
+			throw new AuthorizationException("This is room is not waiting players anymore.");
+		}
+
+		if ($room->players->count() < 2) {
+			throw new AuthorizationException("This room does not have enough players.");
+		}
+
+		$room->state = Room::STATE_PLAYING;
+		$room->save();
+
+		broadcast(new StateChangedEvent($room))->toOthers();
+
+		return ["state" => $room->state];
+	}
 }
