@@ -6,13 +6,12 @@ use App\Cache\RoomRound;
 use App\Card;
 use App\Events\Room\NewRoundEvent;
 use App\Events\Room\StateChangedEvent;
-use App\Http\Requests\StoreRoomRequest;
+use App\Http\Requests\DrawCardRequest;
 use App\Room;
 use App\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 class RoomController
 {
@@ -32,9 +31,6 @@ class RoomController
 	public function show(Request $request, Room $room): array
 	{
 		$this->authorize('view', $room);
-
-		// TODO: fetch room state's data from cache
-
 		return [
 			"room" => $room,
 			"round" => $room->round,
@@ -94,6 +90,63 @@ class RoomController
 			"round" => $round,
 			"room" => $room,
 			"hand" => Card::fetchHandCardsList($hands->getForUser($request->user())),
+		];
+	}
+
+
+	/**
+	 * @param DrawCardRequest $request
+	 * @param Room $room
+	 *
+	 * @return array
+	 * @throws AuthorizationException
+	 */
+	public function drawCard(DrawCardRequest $request, Room $room)
+	{
+		$this->authorize('drawCard', [$room, $request->get('type')]);
+
+		$user = $request->user();
+		$round = $room->round;
+		$dump = $room->dump;
+		$hands = $room->hands;
+		$query = Card::query()
+			->select(['id', 'text', 'blanks', 'contributor_id'])
+			->with(["contributor"])
+			->whereNotIn('id', $room->dump->ids)
+			->inRandomOrder();
+
+		// TODO: handle no more playable cards available
+		// TODO: split code to make it more readable
+
+		switch ($request->get("type")) {
+			case Card::BLACK:
+				/** @var Card $card */
+				$query->where("blanks", ">", 0);
+				$card = $query->first();
+				$dump->addCard($card)->save();
+				$round->black_card_id = $card->id;
+				$round->state = RoomRound::STATE_DRAW_WHITE_CARD;
+				$round->save();
+				$cards = [$card];
+				broadcast(new StateChangedEvent($room));
+				break;
+			case Card::WHITE:
+				$query->where("blanks", 0);
+				$cards = $query->limit($request->get("amount", 1))->get();
+				$dump->addCards($cards)->save();
+				$userHand = $hands->getForUser($user);
+				$hands->setForUser($user, [...$userHand, ...$cards->pluck("id")]);
+				$hands->save();
+				break;
+			default:
+				$cards = [];
+		}
+
+
+		return [
+			"round" => $round,
+			"hand" => $hands->getForUser($user),
+			"cards" => $cards,
 		];
 	}
 }

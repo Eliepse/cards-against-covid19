@@ -110,6 +110,12 @@ class Room extends Model
 	}
 
 
+	public function isPlaying(): bool
+	{
+		return $this->state === self::STATE_PLAYING;
+	}
+
+
 	public function isTerminated(): bool
 	{
 		return $this->state === self::STATE_TERMINATED;

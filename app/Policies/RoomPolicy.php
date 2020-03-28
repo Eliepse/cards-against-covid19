@@ -3,6 +3,8 @@
 
 namespace App\Policies;
 
+use App\Cache\RoomRound;
+use App\Card;
 use App\Room;
 use App\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
@@ -126,7 +128,7 @@ class RoomPolicy
 
 	public function join(User $user, Room $room): bool
 	{
-		if($room->isTerminated()) {
+		if ($room->isTerminated()) {
 			return false;
 		}
 
@@ -143,9 +145,33 @@ class RoomPolicy
 	}
 
 
-	public function drawBlackCard(User $user, Room $room): bool
+	public function drawCard(User $user, Room $room, string $type, int $amount = 1): bool
 	{
-		return false;
+		if (!$room->players->containsStrict('id', $user->id)) {
+			return false;
+		}
+
+		if (!$room->isPlaying()) {
+			return false;
+		}
+
+		switch ($type) {
+			case Card::WHITE:
+//				if ($room->hands->getForUser($user) === RoomRound::STATE_DRAW_WHITE_CARD) return false;
+//				if (!$room->round->black_card_id) return false;
+//				if (empty($room->round->players_played_cards_ids[ $user->id ])) return true;
+//				$maxPlayable = $room->round->getBlackCard()->blanks;
+//				return count($room->round->players_played_cards_ids[ $user->id ]) < $maxPlayable;
+				return count($room->hands->getForUser($user)) + $amount <= $room->hand_size;
+			case Card::BLACK:
+				return $amount === 1
+					&& $room->juge
+					&& $room->juge->is($user)
+					&& is_null($room->round->black_card_id)
+					&& $room->round->state === RoomRound::STATE_DRAW_BLACK_CARD;
+			default:
+				return false;
+		}
 	}
 
 

@@ -1,19 +1,17 @@
 <template>
 	<main class="h-screen pt-12 w-full relative">
 
-		<div v-if="isRoomPlaying" class="absolute top-0 left-0 mt-16 ml-4 font-mono">
-			<ul class="text-sm text-gray-800">
-				<li v-for="player in players.sort((a, b) => b.pivot.score - a.pivot.score)" class="mb-2"
-				    :class="{'text-gray-500 italic': !player.connected}">
-					<template v-if="player.connected">
-						<span v-if="isJuge(player)">&raquo;&nbsp;</span>
-						<span v-else>&dash;&nbsp;</span>
-					</template>
-					<span v-else>&times;&nbsp;</span>
-					{{ player.username }}&nbsp;: {{ player.pivot.score }}
-				</li>
-			</ul>
-		</div>
+		<ul v-if="isRoomPlaying" class="text-sm text-gray-800 absolute top-0 left-0 mt-16 ml-4 font-mono">
+			<li v-for="player in players.sort((a, b) => b.pivot.score - a.pivot.score)" class="mb-2"
+			    :class="{'text-gray-500': !player.connected}">
+				<template v-if="player.connected">
+					<span v-if="isJuge(player)">&raquo;&nbsp;</span>
+					<span v-else>&dash;&nbsp;</span>
+				</template>
+				<span v-else>&times;&nbsp;</span>
+				{{ player.username }}&nbsp;: {{ player.pivot.score }}
+			</li>
+		</ul>
 
 		<div v-if="isRoomWaiting" class="h-full w-full flex flex-col justify-center overflow-hidden pb-20">
 			<div class="w-full max-w-xs mx-auto bg-white rounded-lg border border-gray-300 shadow-xl text-center p-8">
@@ -37,7 +35,7 @@
 
 		</div>
 
-		<div v-if="isRoomPlaying && isRoundDrawing" class="h-full w-full flex items-center overflow-hidden pb-20">
+		<div v-if="isRoomPlaying && isRoundDrawing()" class="h-full w-full flex items-center overflow-hidden pb-20">
 			<div class="fixed top-0 left-0 w-0 h-0" style="z-index: 2">
 				<card v-for="(fCard,j) in fakeCards" :card='{"text":""}' :key="j"
 				      :style="{top: fCard.x + 'px', left: fCard.y + 'px', transform: 'translate(-50%,-50%) rotateZ('+ fCard.r +'deg)'}"
@@ -46,7 +44,7 @@
 
 			<div class="roomTable container m-auto flex justify-center items-center" style="z-index: 1" ref="table">
 				<template v-if="isRoundDrawing('white-card')">
-					<card :card="{}" class="my-0 mx-0" :style="{transform:'rotateZ('+ blackCardAngle +'deg)'}"/>
+					<card :card="round.black_card" class="my-0 mx-0" :style="{transform:'rotateZ('+ blackCardAngle +'deg)'}"/>
 				</template>
 				<template v-else-if="isRoundDrawing('black-card')">
 					<div class="max-w-xs mx-auto text-center">
@@ -71,8 +69,8 @@
 				</template>
 			</div>
 
-			<div class="hand w-full fixed bottom-0 z-10">
-				<div v-if="!isJuge" class="flex justify-center mb-8">
+			<div v-if="isRoundDrawing('white-card')" class="hand w-full text-center fixed bottom-0 z-10">
+				<div v-if="!isJuge()" class="flex justify-center mb-8">
 					<Card v-for="(card,i) in hand" :key="i" :card="card"
 					      @mouseenter.native="zoomOn = card"
 					      @mouseleave.native="zoomOn = null"
@@ -81,6 +79,9 @@
 					      :class="{'card--small':true, 'card--zoomed':card === zoomOn, 'card--selected border-blue-500': selectedCards[card.id]}"
 					      :style="{zIndex: card === zoomOn ? 20 : i+5}"/>
 				</div>
+				<p v-else class="text-gray-700 mb-8">
+					Les autres joueurs sélectionnent leurs réponses.
+				</p>
 			</div>
 		</div>
 
@@ -200,6 +201,7 @@
 			},
 			drawBlackCard() {
 				console.log("Draw black card")
+				this.$store.dispatch("drawCard", {type: 'black', amount: 1});
 			}
 		},
 		computed: {

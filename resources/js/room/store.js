@@ -50,6 +50,7 @@ export default new Vuex.Store({
 		setRoom: (state, {room}) => {state.room = room},
 		setRound: (state, {round}) => {state.round = round},
 		setHand: (state, {cards}) => {state.hand = cards},
+		setBlackCard: (state, {card}) => {state.round.black_card = card},
 		addPlayers: (state, {players}) => {
 			players.forEach(player => {
 				if (!state.room.players.find(p => p.id === player.id))
@@ -87,10 +88,11 @@ export default new Vuex.Store({
 				console.error(error);
 			}
 		},
-		drawWhiteCard: async function (ctx, {amount}) {
+		drawCard: async function (ctx, {type, amount}) {
 			try {
-				// TODO
-				//const response = await axios.get('/api/room/' + id);
+				const response = await axios.post(`/api/room/${this.state.room.id}/draw`, {type, amount});
+				//debugger
+				console.log(response.data)
 				//context.commit('setRoom', {room: response.data});
 			} catch (e) {
 				console.error(e)
