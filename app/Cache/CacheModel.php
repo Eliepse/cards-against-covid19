@@ -7,7 +7,7 @@ namespace App\Cache;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Facades\Cache;
 
-abstract class CacheModel implements Arrayable
+abstract class CacheModel implements Arrayable, \JsonSerializable
 {
 	public const CACHE_TIMEMOUT = 24 * 3_600;
 
@@ -43,5 +43,11 @@ abstract class CacheModel implements Arrayable
 		);
 
 		return $this;
+	}
+
+
+	public function jsonSerialize()
+	{
+		return $this->toArray();
 	}
 }

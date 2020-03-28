@@ -3,11 +3,13 @@
 namespace App\Cache;
 
 
+use App\Card;
 use App\Room;
+use Illuminate\Support\Collection;
 
 class RoomDump extends CacheModel
 {
-	public array $cards_id;
+	public array $ids = [];
 
 	private Room $room;
 
@@ -21,7 +23,7 @@ class RoomDump extends CacheModel
 
 	public function refresh(): self
 	{
-		$this->cards_id = $this->fetchRawAttributes();
+		$this->ids = $this->fetchRawAttributes();
 		return $this;
 	}
 
@@ -32,11 +34,25 @@ class RoomDump extends CacheModel
 	}
 
 
+	public function addCard(Card $card): self
+	{
+		$this->ids[] = $card->id;
+		return $this;
+	}
+
+
+	public function addCards(Collection $cards): self
+	{
+		$cards->each(fn($card) => $this->addCard($card));
+		return $this;
+	}
+
+
 	/**
 	 * @inheritDoc
 	 */
 	public function toArray(): array
 	{
-		return $this->cards_id;
+		return $this->ids;
 	}
 }
