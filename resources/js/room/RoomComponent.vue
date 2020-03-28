@@ -1,20 +1,20 @@
 <template>
 	<main class="h-screen pt-12 w-full">
 
-		<div v-if="roomState === 'waiting'" class="h-full w-full flex flex-col justify-center overflow-hidden pb-20">
+		<div v-if="room.state === 'waiting'" class="h-full w-full flex flex-col justify-center overflow-hidden pb-20">
 			<div class="w-full max-w-xs mx-auto bg-white rounded-lg border border-gray-300 shadow-xl text-center p-8">
 				<h1 class="text-lg text-blue-700">En attente de joueurs</h1>
 				<hr class="my-6">
 				<ul>
-					<li v-for="(player, i) in room.players" :key="i"
+					<li v-for="(player, i) in players" :key="i"
 					    class="text-gray-400 my-2"
-					    :class="{'text-gray-700': connected.find((p) => p.id === player.id)}">
+					    :class="{'text-gray-700': player.connected}">
 						{{ player.username }}
 					</li>
 				</ul>
-				<p class="mt-8 text-gray-700">{{ connected.length }} / {{ room.max_players }}</p>
+				<p class="mt-8 text-gray-700">{{ players.length }} / {{ room.max_players }}</p>
 			</div>
-			<button v-if="user_id === room.host_id && connected.length >= 2" @click="startRoom"
+			<button v-if="user_id === room.host_id && players.length >= 2" @click="startRoom"
 			        :class="{'opacity-75':starting}" :disabled="starting"
 			        class="w-full max-w-xs mx-auto bg-blue-500 hover:bg-blue-700 text-white font-bold text-center
 			     py-3 px-4 rounded focus:outline-none focus:shadow-outline block mt-4">
@@ -23,7 +23,7 @@
 
 		</div>
 
-		<div v-if="roomState === 'answer'" class="h-full w-full flex items-center overflow-hidden pb-20">
+		<div v-if="room.state === 'playing' && roundState === 'answer'" class="h-full w-full flex items-center overflow-hidden pb-20">
 			<div class="fixed top-0 left-0 w-0 h-0" style="z-index: 2">
 				<card v-for="(fCard,j) in fakeCards" :card='{"text":""}' :key="j"
 				      :style="{top: fCard.x + 'px', left: fCard.y + 'px', transform: 'translate(-50%,-50%) rotateZ('+ fCard.r +'deg)'}"
@@ -35,7 +35,7 @@
 			</div>
 
 			<div class="hand w-full fixed bottom-0 z-10">
-				<div class="flex justify-center mb-8">
+				<div v-if="user_id !== room.juge.id" class="flex justify-center mb-8">
 					<Card v-for="(card,i) in hand" :key="i" :card="card"
 					      @mouseenter.native="zoomOn = card"
 					      @mouseleave.native="zoomOn = null"
@@ -81,19 +81,14 @@
 				type: Number,
 				required: true
 			},
-			channel: {
+			public_channel: {
+				type: String,
+				required: true
+			},
+			private_channel: {
 				type: String,
 				required: true
 			}
-			//cards: {
-			//	type: Array,
-			//	required: false,
-			//	default() {return []}
-			//},
-			//blackCard: {
-			//	type: Object,
-			//	required: false
-			//}
 		},
 		mounted() {
 			this.$store.dispatch('loadRoom', {id: this.room_id});
@@ -101,20 +96,22 @@
 				broadcaster: 'socket.io',
 				host: window.location.hostname + ':6001',
 				namespace: 'App.Events.Room'
-			});
-			echo.join(this.channel)
+			})
+			echo.join(this.public_channel)
 				.here(players => players.forEach(player => this.$store.commit('addConnectedPlayer', {player})))
 				.joining(player => this.$store.commit('addConnectedPlayer', {player}))
 				.leaving(player => this.$store.commit('removeConnectedPlayer', {player}))
 				.listen("PlayerJoinedEvent", ({players}) => this.$store.commit('addPlayers', {players}))
-				.listen("StateChangedEvent", ({state, room}) => {
+				.listen("StateChangedEvent", ({room, round}) => {
 					this.$store.commit('setRoom', {room});
-					this.$store.commit('setRoomState', {state});
-				})
+					this.$store.commit('setRound', {round});
+				});
+
+			echo.private(this.private_channel)
+				.listen("NewRoundEvent", (ev) => console.log(ev))
 		},
 		data() {
 			return {
-				//state: "waiting", // answer -> waiting:selection -> selection
 				zoomOn: null,
 				selectedCards: {},
 				fakeCards: [],
@@ -157,13 +154,14 @@
 					})
 			}
 		},
-		computed: mapState({
-			room: state => state.room,
-			roomState: state => state.roomState,
-			hand: state => state.hand,
-			blackCard: state => state.blackCard,
-			connected: state => state.connectedPlayers
-		})
+		computed: {
+			...mapState({
+				room: state => state.room,
+				roomState: state => state.roomState,
+				hand: state => state.hand
+			}),
+			...mapGetters(['players'])
+		}
 	}
 </script>
 

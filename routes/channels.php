@@ -15,9 +15,12 @@ use Illuminate\Support\Facades\Broadcast;
 |
 */
 
-//Broadcast::channel('App.User.{id}', function ($user, $id) {
-//    return (int) $user->id === (int) $id;
-//});
+Broadcast::channel('App.Room.{room}.{id}', function (User $user, $room, $id) {
+	if ($user->cant('join', Room::findOrFail($room))) {
+		return false;
+	}
+	return (int)$user->id === (int)$id;
+});
 
 Broadcast::channel('App.Room.{id}', function (User $user, $id) {
 	if ($user->can('join', Room::findOrFail($id))) {

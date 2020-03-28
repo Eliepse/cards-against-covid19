@@ -2,7 +2,7 @@
 
 namespace App\Events\Room;
 
-use App\Channels\RoomChannel;
+use App\Channels\PresenceRoomChannel;
 use App\Room;
 use App\User;
 use Illuminate\Broadcasting\Channel;
@@ -50,11 +50,11 @@ class PlayerJoinedEvent implements ShouldBroadcast
 	/**
 	 * Get the channels the event should broadcast on.
 	 *
-	 * @return RoomChannel
+	 * @return PresenceRoomChannel
 	 */
-	public function broadcastOn(): RoomChannel
+	public function broadcastOn(): PresenceRoomChannel
 	{
-		return new RoomChannel($this->room);
+		return new PresenceRoomChannel($this->room);
 	}
 
 

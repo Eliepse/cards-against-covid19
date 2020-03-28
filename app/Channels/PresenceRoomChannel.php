@@ -5,9 +5,10 @@ namespace App\Channels;
 
 
 use App\Room;
+use App\User;
 use Illuminate\Broadcasting\PresenceChannel;
 
-class RoomChannel extends PresenceChannel
+class PresenceRoomChannel extends PresenceChannel
 {
 	/**
 	 * @var Room
@@ -19,6 +20,12 @@ class RoomChannel extends PresenceChannel
 	{
 		parent::__construct("App.Room.{$room->id}");
 		$this->room = $room;
+	}
+
+
+	public function join(User $user)
+	{
+		//
 	}
 
 

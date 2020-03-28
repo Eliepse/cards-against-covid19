@@ -6,7 +6,9 @@
 	<div id="room" class="h-screen">
 		<room :user_id="{{ Auth::user()->id }}"
 		      :room_id="{{ $room->id }}"
-		      channel="{{ (new \App\Channels\RoomChannel($room))->getChannelId() }}"></room>
+		      public_channel="{{ (new \App\Channels\PresenceRoomChannel($room))->getChannelId() }}"
+		      private_channel="{{ (new \App\Channels\PrivateRoomChannel($room, Auth::user()))->getChannelId() }}">
+		</room>
 	</div>
 @endsection
 

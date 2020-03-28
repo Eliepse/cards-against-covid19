@@ -17,6 +17,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Card extends Model
 {
+	const BLACK = "black";
+	const WHITE = "white";
+
 	protected $guarded = ["blanks",];
 
 

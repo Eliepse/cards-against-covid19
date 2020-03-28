@@ -7,23 +7,27 @@ Vue.use(Vuex);
 export default new Vuex.Store({
 	strict: true,
 	state: {
-		hand: [],
-		blackCard: null,
 		room: {},
-		roomState: null,
+		round: {},
+		hand: [],
 		connectedPlayers: []
 	},
 	getters: {
-		roomState: state => state.roomState,
 		room: state => state.room,
-		connectedPlayers: state => state.connectedPlayers,
+		round: state => state.round,
 		hand: state => state.hand,
-		blackCard: state => state.blackCard
+		connectedPlayers: state => state.connectedPlayers,
+		players: state => {
+			return state.room.players.map(player => {
+				player.connected = state.connectedPlayers.find((cp) => cp.id === player.id) !== undefined;
+				return player
+			})
+		}
 	},
 	mutations: {
-		setRoomState: (s, {state}) => {s.roomState = state},
+		setRound: (state, {round}) => {state.round = round},
 		setRoom: (state, {room}) => {state.room = room},
-		setBlackCard: (state, {card}) => {state.blackCard = card},
+		setHand: (state, {cards}) => {state.hand = cards},
 		addPlayers: (state, {players}) => {
 			players.forEach(player => {
 				if (!state.room.players.find(p => p.id === player.id))
@@ -45,8 +49,7 @@ export default new Vuex.Store({
 			try {
 				const response = await axios.get('/api/room/' + id);
 				context.commit('setRoom', {room: response.data.room});
-				context.commit('setBlackCard', {card: response.data.black_card});
-				context.commit('setRoomState', {state: response.data.state});
+				context.commit('setRound', {state: response.data.round});
 			} catch (error) {
 				console.error(error);
 			}
