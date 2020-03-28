@@ -22,6 +22,7 @@ use Illuminate\Support\Str;
  * @property int $hand_size
  * Relations
  * @property User $host
+ * @property User|null $juge
  * @property Collection $players
  * @property Carbon $created_at
  * @property Carbon $updated_at
@@ -49,10 +50,30 @@ class Room extends Model
 	}
 
 
+	public function juge(): BelongsTo
+	{
+		return $this->belongsTo(User::class, 'juge_id');
+	}
+
+
 	public function generateUrl(): string
 	{
 		$this->url = Str::random(12);
 		return $this->url;
+	}
+
+
+	public function changeNextJuge(): ?User
+	{
+		if (count($this->players_order) === 0) {
+			return null;
+		}
+
+		$index = $this->players->search(fn($player) => $this->juge->is($player)) || 0;
+		$juge = $this->players->get($index + 1, 0);
+		$this->juge()->associate($juge);
+
+		return $this->juge;
 	}
 
 
