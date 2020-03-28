@@ -50,7 +50,7 @@ class StateChangedEvent implements ShouldBroadcast
 	public function broadcastWith(): array
 	{
 		return [
-			"state" => $this->room->state,
+			"round" => $this->room->round,
 			"room" => $this->room,
 		];
 	}

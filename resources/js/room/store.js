@@ -13,11 +13,10 @@ export default new Vuex.Store({
 		connectedPlayers: []
 	},
 	getters: {
-		room: state => state.room,
-		round: state => state.round,
-		hand: state => state.hand,
-		connectedPlayers: state => state.connectedPlayers,
 		players: state => {
+			if(!state.room.players)
+				return [];
+
 			return state.room.players.map(player => {
 				player.connected = state.connectedPlayers.find((cp) => cp.id === player.id) !== undefined;
 				return player
@@ -45,16 +44,16 @@ export default new Vuex.Store({
 		}
 	},
 	actions: {
-		loadRoom: async function (context, {id}) {
+		loadRoom: async function (ctx, {id}) {
 			try {
 				const response = await axios.get('/api/room/' + id);
-				context.commit('setRoom', {room: response.data.room});
-				context.commit('setRound', {state: response.data.round});
+				ctx.commit('setRoom', {room: response.data.room});
+				ctx.commit('setRound', {state: response.data.round});
 			} catch (error) {
 				console.error(error);
 			}
 		},
-		drawWhiteCard: async function (context, {amount}) {
+		drawWhiteCard: async function (ctx, {amount}) {
 			try {
 				// TODO
 				//const response = await axios.get('/api/room/' + id);
@@ -70,7 +69,8 @@ export default new Vuex.Store({
 			}
 			try {
 				const response = await axios.post('/api/room/' + ctx.state.room.id + '/start');
-				ctx.commit('setRoomState', {state: response.data.state});
+				ctx.commit('setRoom', {room: response.data.room});
+				ctx.commit('setRound', {round: response.data.round});
 				return true;
 			} catch (error) {
 				console.error(error.response.data.message);

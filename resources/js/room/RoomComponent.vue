@@ -23,7 +23,7 @@
 
 		</div>
 
-		<div v-if="room.state === 'playing' && roundState === 'answer'" class="h-full w-full flex items-center overflow-hidden pb-20">
+		<div v-if="room.state === 'playing' && round.state === 'draw:white-card'" class="h-full w-full flex items-center overflow-hidden pb-20">
 			<div class="fixed top-0 left-0 w-0 h-0" style="z-index: 2">
 				<card v-for="(fCard,j) in fakeCards" :card='{"text":""}' :key="j"
 				      :style="{top: fCard.x + 'px', left: fCard.y + 'px', transform: 'translate(-50%,-50%) rotateZ('+ fCard.r +'deg)'}"
@@ -47,7 +47,7 @@
 			</div>
 		</div>
 
-		<div v-if="roomState === 'selection'" class="h-full w-full flex flex-col items-center">
+		<div v-if="room.state === 'selection'" class="h-full w-full flex flex-col items-center">
 			<div class="flex justify-center items-center mx-16 mt-8 mb-10">
 				<card :card="blackCard" :style="{transform:'rotateZ('+ blackCardAngle +'deg)'}" class="card--small"/>
 			</div>
@@ -90,13 +90,15 @@
 				required: true
 			}
 		},
-		mounted() {
-			this.$store.dispatch('loadRoom', {id: this.room_id});
+		async mounted() {
+			await this.$store.dispatch('loadRoom', {id: this.room_id});
+
 			const echo = new Echo({
 				broadcaster: 'socket.io',
 				host: window.location.hostname + ':6001',
 				namespace: 'App.Events.Room'
-			})
+			});
+
 			echo.join(this.public_channel)
 				.here(players => players.forEach(player => this.$store.commit('addConnectedPlayer', {player})))
 				.joining(player => this.$store.commit('addConnectedPlayer', {player}))
@@ -146,9 +148,9 @@
 				if (this.starting) return;
 				this.starting = true;
 				this.$store.dispatch('startRoom')
-					.then((rtn) => {
-						if (rtn !== true) {
-							alert(rtn.message);
+					.then((res) => {
+						if (res !== true) {
+							alert(res.message);
 							this.starting = false
 						}
 					})
@@ -157,7 +159,7 @@
 		computed: {
 			...mapState({
 				room: state => state.room,
-				roomState: state => state.roomState,
+				round: state => state.round,
 				hand: state => state.hand
 			}),
 			...mapGetters(['players'])
