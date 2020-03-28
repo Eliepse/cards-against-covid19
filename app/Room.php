@@ -17,7 +17,7 @@ use Illuminate\Support\Str;
  * @property string $url
  * @property string $state
  * @property int $host_id
- * @property array $player_order
+ * @property array $players_order
  * @property int $max_players
  * @property int $hand_size
  * Relations
@@ -33,6 +33,7 @@ class Room extends Model
 	public const STATE_TERMINATED = 'terminated';
 
 	protected $guarded = [];
+	protected $with = ['host', 'players'];
 
 
 	public function players(): BelongsToMany

@@ -22,7 +22,7 @@ class RoomController
 		$user = Auth::user();
 		$room = Room::query()
 			->where('url', $url)
-			->with(["players"])
+			->without(['host'])
 			->firstOrFail(['id', 'url', 'max_players', 'state']);
 
 		$this->authorize('join', $room);

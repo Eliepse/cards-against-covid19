@@ -18,7 +18,7 @@ class CreateRoomsTable extends Migration
 			$table->string("url")->unique();
 			$table->string("state")->default("waiting"); // waiting, playing, terminated
 			$table->foreignId("host_id")->constrained("users");
-			$table->json("player_order")->default(json_encode([]));
+			$table->json("players_order")->default(json_encode([]));
 			$table->unsignedTinyInteger("max_players")->default(8);
 			$table->unsignedTinyInteger("hand_size")->default(5);
 			$table->timestamps();
