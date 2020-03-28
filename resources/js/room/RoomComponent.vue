@@ -6,12 +6,17 @@
 				<h1 class="text-lg text-blue-700">En attente de joueurs</h1>
 				<hr class="my-6">
 				<ul>
-					<li v-for="(player, i) in players" :key="i" class="text-gray-700 my-2">{{ player.username }}</li>
+					<li v-for="(player, i) in room.players" :key="i"
+					    class="text-gray-400 my-2"
+					    :class="{'text-gray-700': connected.find((p) => p.id === player.id)}">
+						{{ player.username }}
+					</li>
 				</ul>
-				<p class="mt-8 text-gray-500">{{ players.length }} / {{ room.max_players }}</p>
+				<p class="mt-8 text-gray-700">{{ connected.length }} / {{ room.max_players }}</p>
 			</div>
-			<button v-if="user_id === room.host_id && players.length >= 2"
-			     class="w-full max-w-xs mx-auto bg-blue-500 hover:bg-blue-700 text-white font-bold text-center
+			<button v-if="user_id === room.host_id && connected.length >= 2" @click="startRoom"
+			        :class="{'opacity-75':starting}" :disabled="starting"
+			        class="w-full max-w-xs mx-auto bg-blue-500 hover:bg-blue-700 text-white font-bold text-center
 			     py-3 px-4 rounded focus:outline-none focus:shadow-outline block mt-4">
 				Démarrer la partie
 			</button>
@@ -98,17 +103,10 @@
 				namespace: 'App.Events.Room'
 			});
 			echo.join(this.channel)
-				.here((users) => {
-					users.forEach(user => {
-						this.$store.commit('addPlayer', {player: user})
-					})
-				})
-				.joining((user) => {
-					this.$store.commit('addPlayer', {player: user})
-				})
-				.leaving((user) => {
-					this.$store.commit('removePlayer', {player: user})
-				});
+				.here(players => players.forEach(player => this.$store.commit('addConnectedPlayer', {player})))
+				.joining(player => this.$store.commit('addConnectedPlayer', {player}))
+				.leaving(player => this.$store.commit('removeConnectedPlayer', {player}))
+				.listen("PlayerJoinedEvent", ({players}) => this.$store.commit('addPlayers', {players}))
 		},
 		data() {
 			return {
@@ -117,16 +115,9 @@
 				selectedCards: {},
 				fakeCards: [],
 				blackCardAngle: Math.round((Math.random() * 30) - 15),
-				playersSelection: [
-					{username: "Adr1", cards: [{"text": ""}]},
-					{username: "Eliepse", cards: [{"text": ""}]},
-					{username: "Agathe", cards: [{"text": ""}]},
-					{username: "Evou", cards: [{"text": ""}]},
-					{username: "Bulle", cards: [{"text": ""}]},
-					{username: "Pangolin", cards: [{"text": ""}]},
-					{username: "Pangolin", cards: [{"text": ""}]},
-				],
+				playersSelection: [],
 				revealPlayersNames: false,
+				starting: false,
 			}
 		},
 		methods: {
@@ -149,16 +140,19 @@
 			},
 			clearFakeCards() {
 				this.fakeCards = [];
+			},
+			startRoom() {
+				if (this.starting) return;
+				this.starting = true;
 			}
 		},
 		computed: mapState({
 			room: state => state.room,
 			roomState: state => state.roomState,
-			players: state => state.players,
 			hand: state => state.hand,
 			blackCard: state => state.blackCard,
+			connected: state => state.connectedPlayers
 		})
-		//...mapGetters(['room', 'roomState', 'players', 'hand', 'blackCard'])
 	}
 </script>
 

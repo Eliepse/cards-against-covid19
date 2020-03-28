@@ -11,12 +11,12 @@ export default new Vuex.Store({
 		blackCard: null,
 		room: {},
 		roomState: null,
-		players: []
+		connectedPlayers: []
 	},
 	getters: {
 		roomState: state => state.roomState,
 		room: state => state.room,
-		players: state => state.players,
+		connectedPlayers: state => state.connectedPlayers,
 		hand: state => state.hand,
 		blackCard: state => state.blackCard
 	},
@@ -24,17 +24,20 @@ export default new Vuex.Store({
 		setRoomState: (s, {state}) => {s.roomState = state},
 		setRoom: (state, {room}) => {state.room = room},
 		setBlackCard: (state, {card}) => {state.blackCard = card},
-		addPlayer: (state, {player}) => {
-			if (state.players.find(p => p.id === player.id)) {
-				return;
-			}
-			state.players.push(player);
+		addPlayers: (state, {players}) => {
+			players.forEach(player => {
+				if (!state.players.find(p => p.id === player.id))
+					state.room.players.push(player);
+			})
 		},
-		removePlayer: (state, {player}) => {
-			if (!state.players.find(p => p.id === player.id)) {
-				return;
-			}
-			state.players.splice(state.players.findIndex(p => p.id === player.id), 1);
+		addConnectedPlayer: (state, {player}) => {
+			if (!state.connectedPlayers.find(p => p.id === player.id))
+				state.connectedPlayers.push(player);
+		},
+		removeConnectedPlayer: (state, {player}) => {
+			if (state.connectedPlayers.find(p => p.id === player.id))
+				state.connectedPlayers.splice(
+					state.connectedPlayers.findIndex(p => p.id === player.id), 1);
 		}
 	},
 	actions: {
@@ -43,9 +46,7 @@ export default new Vuex.Store({
 				const response = await axios.get('/api/room/' + id);
 				context.commit('setRoom', {room: response.data.room});
 				context.commit('setBlackCard', {card: response.data.black_card});
-				//context.commit('setPlayers', {players: response.data.connected_players});
 				context.commit('setRoomState', {state: response.data.state});
-				// load room state
 			} catch (error) {
 				console.error(error);
 			}

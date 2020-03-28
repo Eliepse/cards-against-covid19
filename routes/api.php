@@ -19,5 +19,5 @@ Route::get('/user', function (Request $request) {
 	return $request->user();
 });
 
-Route::get('/room/{room}', [RoomController::class, 'show']);
 Route::post('/room', [RoomController::class, 'store']);
+Route::get('/room/{room}', [RoomController::class, 'show']);

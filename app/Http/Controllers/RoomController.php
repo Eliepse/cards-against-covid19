@@ -4,13 +4,11 @@
 namespace App\Http\Controllers;
 
 
-use App\Card;
 use App\Events\Room\PlayerJoinedEvent;
 use App\Room;
 use App\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 
 class RoomController
 {
@@ -19,14 +17,24 @@ class RoomController
 
 	public function show(string $url)
 	{
+		/** @var User $user */
 		/** @var Room $room */
-		$room = Room::query()->where('url', $url)->firstOrFail(['id', 'url', 'max_players', 'state']);
+		$user = Auth::user();
+		$room = Room::query()
+			->where('url', $url)
+			->with(["players"])
+			->firstOrFail(['id', 'url', 'max_players', 'state']);
 
 		$this->authorize('join', $room);
 
 //		$cache_key = "App.Room.{$room->id}";
 
-		$room->players()->syncWithoutDetaching(Auth::user());
+		// Add player and broadcast only once
+		if (!$room->players->firstWhere("id", $user->id)) {
+			$room->players()->syncWithoutDetaching($user);
+			broadcast(new PlayerJoinedEvent($room, $user))->toOthers();
+		}
+
 
 		return view("room.show", ["room" => $room]);
 	}

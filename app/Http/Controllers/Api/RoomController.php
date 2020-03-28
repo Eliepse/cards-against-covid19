@@ -8,7 +8,6 @@ use App\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 class RoomController
 {
@@ -25,7 +24,7 @@ class RoomController
 	 * @return array
 	 * @throws AuthorizationException
 	 */
-	public function show(Request $request, Room $room)
+	public function show(Request $request, Room $room): array
 	{
 		$this->authorize('view', $room);
 		$room->loadMissing(['host', 'players']);
@@ -48,7 +47,7 @@ class RoomController
 	 * @return array
 	 * @throws AuthorizationException
 	 */
-	public function store(StoreRoomRequest $request)
+	public function store(StoreRoomRequest $request): array
 	{
 		$this->authorize('create', Room::class);
 

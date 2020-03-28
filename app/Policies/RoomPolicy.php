@@ -160,12 +160,4 @@ class RoomPolicy
 		return false;
 	}
 
-
-	public function forceChangeState(User $user, Room $room): bool
-	{
-		// handle force starting the game
-		// handle force new round ?
-		// handle force terminate the game -> scores page
-		return false;
-	}
 }
