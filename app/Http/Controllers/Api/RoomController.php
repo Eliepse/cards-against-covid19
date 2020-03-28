@@ -43,29 +43,6 @@ class RoomController
 
 
 	/**
-	 * @param StoreRoomRequest $request
-	 *
-	 * @return array
-	 * @throws AuthorizationException
-	 */
-	public function store(StoreRoomRequest $request): array
-	{
-		$this->authorize('create', Room::class);
-
-		/** @var User $user */
-		$user = $request->user();
-		$room = new Room();
-		$room->generateUrl();
-		$room->max_players = $request->get('max_players', 8);
-		$room->hand_size = 5; // TODO: change the size according to final player number?
-		$user->hostedRooms()->save($room);
-		$user->playedRooms()->attach($room);
-
-		return $room->toArray();
-	}
-
-
-	/**
 	 * @param Request $request
 	 * @param Room $room
 	 *
