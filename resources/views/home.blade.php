@@ -26,10 +26,17 @@
 					</form>
 				@endcan
 				@cannot('create', \App\Room::class)
-					<p class="text-center text-gray-500">
+					<p class="text-center text-gray-500 mb-4">
 						Vous ne pouvez pas créer de partie car vous êtes probablement
 						déjà dans une partie encore en cours.
 					</p>
+					@if($room)
+						<a class="bg-green-500 hover:bg-green-700 text-white font-bold text-center py-3 px-4 rounded
+						focus:outline-none focus:shadow-outline block mt-4"
+						   href="{{ action([\App\Http\Controllers\RoomController::class, 'show'], $room->url) }}">
+							Rejoindre ma partie en cours
+						</a>
+					@endif
 				@endcannot
 			</div>
 		</div>
