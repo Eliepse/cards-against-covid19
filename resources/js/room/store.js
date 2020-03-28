@@ -7,6 +7,7 @@ Vue.use(Vuex);
 export default new Vuex.Store({
 	strict: true,
 	state: {
+		user: null,
 		room: {},
 		round: {},
 		hand: [],
@@ -14,18 +15,31 @@ export default new Vuex.Store({
 	},
 	getters: {
 		players: state => {
-			if(!state.room.players)
+			if (!state.room.players)
 				return [];
 
 			return state.room.players.map(player => {
 				player.connected = state.connectedPlayers.find((cp) => cp.id === player.id) !== undefined;
 				return player
 			})
-		}
+		},
+		isHost: state => {
+			if (!state.room.host) return false;
+			if (!state.user) return false;
+			return state.room.host.id === state.user.id;
+		},
+		isJuge: state => {
+			if (!state.room.juge) return false;
+			if (!state.user) return false;
+			return state.room.juge.id === state.user.id;
+		},
+		isRoomWaiting: state => state.room && state.room.state === "waiting",
+		isRoomPlaying: state => state.room && state.room.state === "playing",
 	},
 	mutations: {
-		setRound: (state, {round}) => {state.round = round},
+		setUser: (state, {user}) => {state.user = user},
 		setRoom: (state, {room}) => {state.room = room},
+		setRound: (state, {round}) => {state.round = round},
 		setHand: (state, {cards}) => {state.hand = cards},
 		addPlayers: (state, {players}) => {
 			players.forEach(player => {
@@ -46,10 +60,20 @@ export default new Vuex.Store({
 	actions: {
 		loadRoom: async function (ctx, {id}) {
 			try {
-				const response = await axios.get('/api/room/' + id);
+				const response = await axios.get(`/api/room/${id}`);
 				ctx.commit('setRoom', {room: response.data.room});
-				ctx.commit('setRound', {state: response.data.round});
+				ctx.commit('setRound', {round: response.data.round});
 			} catch (error) {
+				// TODO: handle error
+				console.error(error);
+			}
+		},
+		loadUser: async function (ctx) {
+			try {
+				const response = await axios.get('/api/user');
+				ctx.commit('setUser', {user: response.data});
+			} catch (error) {
+				// TODO: handle error
 				console.error(error);
 			}
 		},

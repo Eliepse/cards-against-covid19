@@ -1,7 +1,7 @@
 <template>
 	<main class="h-screen pt-12 w-full">
 
-		<div v-if="room.state === 'waiting'" class="h-full w-full flex flex-col justify-center overflow-hidden pb-20">
+		<div v-if="isRoomWaiting" class="h-full w-full flex flex-col justify-center overflow-hidden pb-20">
 			<div class="w-full max-w-xs mx-auto bg-white rounded-lg border border-gray-300 shadow-xl text-center p-8">
 				<h1 class="text-lg text-blue-700">En attente de joueurs</h1>
 				<hr class="my-6">
@@ -23,7 +23,7 @@
 
 		</div>
 
-		<div v-if="room.state === 'playing' && round.state === 'draw:white-card'" class="h-full w-full flex items-center overflow-hidden pb-20">
+		<div v-if="isRoomPlaying && round.state === 'draw:white-card'" class="h-full w-full flex items-center overflow-hidden pb-20">
 			<div class="fixed top-0 left-0 w-0 h-0" style="z-index: 2">
 				<card v-for="(fCard,j) in fakeCards" :card='{"text":""}' :key="j"
 				      :style="{top: fCard.x + 'px', left: fCard.y + 'px', transform: 'translate(-50%,-50%) rotateZ('+ fCard.r +'deg)'}"
@@ -35,7 +35,7 @@
 			</div>
 
 			<div class="hand w-full fixed bottom-0 z-10">
-				<div v-if="user_id !== room.juge.id" class="flex justify-center mb-8">
+				<div v-if="!isJuge" class="flex justify-center mb-8">
 					<Card v-for="(card,i) in hand" :key="i" :card="card"
 					      @mouseenter.native="zoomOn = card"
 					      @mouseleave.native="zoomOn = null"
@@ -47,7 +47,7 @@
 			</div>
 		</div>
 
-		<div v-if="room.state === 'selection'" class="h-full w-full flex flex-col items-center">
+		<div v-if="isRoomPlaying && round.state === 'reveal:cards'" class="h-full w-full flex flex-col items-center">
 			<div class="flex justify-center items-center mx-16 mt-8 mb-10">
 				<card :card="blackCard" :style="{transform:'rotateZ('+ blackCardAngle +'deg)'}" class="card--small"/>
 			</div>
@@ -91,6 +91,7 @@
 			}
 		},
 		async mounted() {
+			await this.$store.dispatch('loadUser', {id: this.room_id});
 			await this.$store.dispatch('loadRoom', {id: this.room_id});
 
 			const echo = new Echo({
@@ -162,7 +163,13 @@
 				round: state => state.round,
 				hand: state => state.hand
 			}),
-			...mapGetters(['players'])
+			...mapGetters([
+				'players',
+				'isJuge',
+				'isHost',
+				'isRoomWaiting',
+				'isRoomPlaying'
+			])
 		}
 	}
 </script>

@@ -10,7 +10,7 @@ class RoomRound extends CacheModel
 	public const STATE_DRAW_BLACK_CARD = "draw:black-card";
 	public const STATE_DRAW_WHITE_CARD = "draw:white-card";
 	public const STATE_REVEAL_CARDS = "reveal:cards";
-	public const STATE_REVEAL_USERNAMES = "scores:usernames";
+	public const STATE_REVEAL_USERNAMES = "reveal:usernames";
 	public const STATE_LEADERBOARD = "leaderboard";
 
 	public string $state;
