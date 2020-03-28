@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Cache;
 
 abstract class CacheModel implements Arrayable
 {
-	public const CACHE_TIMEMOUT = 180;
+	public const CACHE_TIMEMOUT = 24 * 3_600;
 
 	/**
 	 * Id of the round to retreive it from the cache
