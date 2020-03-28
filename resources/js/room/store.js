@@ -30,11 +30,20 @@ export default new Vuex.Store({
 		},
 		isJuge: state => player => {
 			if (!state.room.juge) return false;
-			if (!state.user && !player) return false;
-			return state.room.juge.id === (player ? player.id : state.user.id);
+			if (player) {
+				return state.room.juge.id === player.id;
+			}
+			return state.user && state.room.juge.id === state.user.id;
 		},
 		isRoomWaiting: state => state.room && state.room.state === "waiting",
 		isRoomPlaying: state => state.room && state.room.state === "playing",
+		isRoundDrawing: state => modifier => {
+			if (!state.round) return false;
+			if (modifier) {
+				return state.round.state === `draw:${modifier}`;
+			}
+			return state.round.state.startsWith('draw');
+		}
 	},
 	mutations: {
 		setUser: (state, {user}) => {state.user = user},

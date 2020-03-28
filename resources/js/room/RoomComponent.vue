@@ -37,7 +37,7 @@
 
 		</div>
 
-		<div v-if="isRoomPlaying && round.state === 'draw:white-card'" class="h-full w-full flex items-center overflow-hidden pb-20">
+		<div v-if="isRoomPlaying && isRoundDrawing" class="h-full w-full flex items-center overflow-hidden pb-20">
 			<div class="fixed top-0 left-0 w-0 h-0" style="z-index: 2">
 				<card v-for="(fCard,j) in fakeCards" :card='{"text":""}' :key="j"
 				      :style="{top: fCard.x + 'px', left: fCard.y + 'px', transform: 'translate(-50%,-50%) rotateZ('+ fCard.r +'deg)'}"
@@ -45,7 +45,30 @@
 			</div>
 
 			<div class="roomTable container m-auto flex justify-center items-center" style="z-index: 1" ref="table">
-				<card :card="blackCard" class="my-0 mx-0" :style="{transform:'rotateZ('+ blackCardAngle +'deg)'}"/>
+				<template v-if="isRoundDrawing('white-card')">
+					<card :card="{}" class="my-0 mx-0" :style="{transform:'rotateZ('+ blackCardAngle +'deg)'}"/>
+				</template>
+				<template v-else-if="isRoundDrawing('black-card')">
+					<div class="max-w-xs mx-auto text-center">
+						<template v-if="isJuge()">
+							<p class="text-gray-700 mb-8">
+								Étant le maître du jeu de cette manche,
+								c'est à vous de piocher la carte noire.
+							</p>
+							<button @click="drawBlackCard"
+							        :class="{'opacity-75':starting}" :disabled="starting"
+							        class="bg-gray-900 text-gray-100 hover:bg-gray-700 font-bold mx-auto
+					                    py-3 px-4 rounded focus:outline-none focus:shadow-outline block mt-4">
+								Piocher une carte noire
+							</button>
+						</template>
+						<template v-else>
+							<p class="text-gray-700">
+								Le maître du jeu va bientôt piocher une carte...
+							</p>
+						</template>
+					</div>
+				</template>
 			</div>
 
 			<div class="hand w-full fixed bottom-0 z-10">
@@ -174,6 +197,9 @@
 							this.starting = false
 						}
 					})
+			},
+			drawBlackCard() {
+				console.log("Draw black card")
 			}
 		},
 		computed: {
@@ -187,7 +213,8 @@
 				'isJuge',
 				'isHost',
 				'isRoomWaiting',
-				'isRoomPlaying'
+				'isRoomPlaying',
+				'isRoundDrawing'
 			])
 		}
 	}
