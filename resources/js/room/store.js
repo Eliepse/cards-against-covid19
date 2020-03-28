@@ -26,7 +26,7 @@ export default new Vuex.Store({
 		setBlackCard: (state, {card}) => {state.blackCard = card},
 		addPlayers: (state, {players}) => {
 			players.forEach(player => {
-				if (!state.players.find(p => p.id === player.id))
+				if (!state.room.players.find(p => p.id === player.id))
 					state.room.players.push(player);
 			})
 		},
