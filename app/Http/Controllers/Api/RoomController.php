@@ -89,10 +89,14 @@ class RoomController
 		}
 
 		$room->state = Room::STATE_PLAYING;
+		$room->players_order = $room->players->shuffle()->pluck('id');
 		$room->save();
 
 		broadcast(new StateChangedEvent($room))->toOthers();
 
-		return ["state" => $room->state];
+		return [
+			"state" => $room->state,
+			"room" => $room,
+		];
 	}
 }

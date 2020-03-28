@@ -107,7 +107,10 @@
 				.joining(player => this.$store.commit('addConnectedPlayer', {player}))
 				.leaving(player => this.$store.commit('removeConnectedPlayer', {player}))
 				.listen("PlayerJoinedEvent", ({players}) => this.$store.commit('addPlayers', {players}))
-				.listen("StateChangedEvent", ({state}) => this.$store.commit('setRoomState', {state}))
+				.listen("StateChangedEvent", ({state, room}) => {
+					this.$store.commit('setRoom', {room});
+					this.$store.commit('setRoomState', {state});
+				})
 		},
 		data() {
 			return {

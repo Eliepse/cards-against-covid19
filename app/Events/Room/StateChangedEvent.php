@@ -51,6 +51,7 @@ class StateChangedEvent implements ShouldBroadcast
 	{
 		return [
 			"state" => $this->room->state,
+			"room" => $this->room,
 		];
 	}
 }
