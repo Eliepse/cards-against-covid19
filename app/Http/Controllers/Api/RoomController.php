@@ -67,7 +67,7 @@ class RoomController
 
 		$room->state = Room::STATE_PLAYING;
 		$room->players_order = $room->players->shuffle()->pluck('id');
-		$room->nextJuge();
+		$room->changeToNextJuge();
 		$room->save();
 
 		broadcast(new StateChangedEvent($room))->toOthers();

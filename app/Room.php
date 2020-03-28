@@ -63,7 +63,7 @@ class Room extends Model
 	}
 
 
-	public function changeNextJuge(): ?User
+	public function changeToNextJuge(): ?User
 	{
 		if (count($this->players_order) === 0) {
 			return null;
