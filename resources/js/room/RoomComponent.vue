@@ -1,5 +1,19 @@
 <template>
-	<main class="h-screen pt-12 w-full">
+	<main class="h-screen pt-12 w-full relative">
+
+		<div v-if="isRoomPlaying" class="absolute top-0 left-0 mt-16 ml-4 font-mono">
+			<ul class="text-sm text-gray-800">
+				<li v-for="player in players.sort((a, b) => b.pivot.score - a.pivot.score)" class="mb-2"
+				    :class="{'text-gray-500 italic': !player.connected}">
+					<template v-if="player.connected">
+						<span v-if="isJuge(player)">&raquo;&nbsp;</span>
+						<span v-else>&dash;&nbsp;</span>
+					</template>
+					<span v-else>&times;&nbsp;</span>
+					{{ player.username }}&nbsp;: {{ player.pivot.score }}
+				</li>
+			</ul>
+		</div>
 
 		<div v-if="isRoomWaiting" class="h-full w-full flex flex-col justify-center overflow-hidden pb-20">
 			<div class="w-full max-w-xs mx-auto bg-white rounded-lg border border-gray-300 shadow-xl text-center p-8">

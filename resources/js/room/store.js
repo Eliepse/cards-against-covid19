@@ -28,10 +28,10 @@ export default new Vuex.Store({
 			if (!state.user) return false;
 			return state.room.host.id === state.user.id;
 		},
-		isJuge: state => {
+		isJuge: state => player => {
 			if (!state.room.juge) return false;
-			if (!state.user) return false;
-			return state.room.juge.id === state.user.id;
+			if (!state.user && !player) return false;
+			return state.room.juge.id === (player ? player.id : state.user.id);
 		},
 		isRoomWaiting: state => state.room && state.room.state === "waiting",
 		isRoomPlaying: state => state.room && state.room.state === "playing",
