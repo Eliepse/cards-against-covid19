@@ -12,7 +12,7 @@ $factory->define(Card::class, function (Faker $faker) {
 	$card = new Card();
 
 	if (random_int(1, 3) === 1)
-		$card->text = $faker->sentence(4) . "__" . ($faker->boolean ? $faker->sentence(4) . "__" : "");
+		$card->text = $faker->sentence(4) . "_____" . ($faker->boolean ? $faker->sentence(4) . "_____" : "");
 	else
 		$card->text = $faker->sentence;
 
