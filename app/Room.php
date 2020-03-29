@@ -84,12 +84,12 @@ class Room extends Model
 		$order->transform(fn($id) => intval($id));
 
 		if (!$this->juge) {
-			/** @noinspection PhpIncompatibleReturnTypeInspection */
-			return $this->players->find($order->first());
+			$juge = $this->players->find($order->first());
+		} else {
+			$index = $order->search($this->juge->id);
+			$juge = $this->players->find($order->get($index + 1, $order->first()));
 		}
 
-		$index = $order->search($this->juge->id);
-		$juge = $this->players->find($order->get($index + 1, $order->first()));
 		$this->juge()->associate($juge);
 
 		return $this->juge;
