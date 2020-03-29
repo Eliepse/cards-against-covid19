@@ -41,6 +41,7 @@ class Room extends Model
 
 	protected $guarded = [];
 	protected $with = ['host', 'players', 'juge'];
+	protected $casts = ['players_order' => 'array'];
 
 	private array $cacheModels = [];
 
@@ -77,8 +78,18 @@ class Room extends Model
 			return null;
 		}
 
-		$index = $this->players->search(fn($player) => $player->is($this->juge)) || 0;
-		$juge = $this->players->get($index + 1, 0);
+		// TODO: remove the use of collection
+		$order = collect($this->players_order);
+		// TODO: test if transform is useful or not
+		$order->transform(fn($id) => intval($id));
+
+		if (!$this->juge) {
+			/** @noinspection PhpIncompatibleReturnTypeInspection */
+			return $this->players->find($order->first());
+		}
+
+		$index = $order->search($this->juge->id);
+		$juge = $this->players->find($order->get($index + 1, $order->first()));
 		$this->juge()->associate($juge);
 
 		return $this->juge;

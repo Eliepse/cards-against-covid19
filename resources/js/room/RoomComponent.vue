@@ -67,33 +67,6 @@
 					</div>
 				</template>
 			</div>
-
-			<div class="hand w-full text-center fixed bottom-0 z-10" :class="{'hand--hide':hideHand}">
-				<template v-if="!isJuge()">
-					<button v-if="showDrawCardsBtn" @click="playSelectedCards" :disabled="played"
-					        class="mx-auto bg-blue-500 hover:bg-blue-700 text-white font-bold text-center
-									py-3 px-4 rounded focus:outline-none focus:shadow-outline block mb-8">
-						<template v-if="selectedCards.length > 1">Jouer ces cartes</template>
-						<template v-else>Jouer cette carte</template>
-					</button>
-					<p v-else-if="!hideHand" class="text-gray-700 mb-8">
-						Sélectionnez {{ round.black_card.blanks }}
-						<template v-if="round.black_card.blanks > 1">cartes dans l'ordre</template>
-						<template v-else>carte</template>
-						à associer avec cette carte noire.
-					</p>
-				</template>
-				<p v-else class="text-gray-700 mb-8">
-					Les autres joueurs sélectionnent leurs réponses.
-				</p>
-				<div class="flex justify-center mb-8">
-					<Card v-for="(card,i) in hand" :key="i" :card="hideHand ? {} : card"
-					      @mouseenter.native="zoomOn = card" @mouseleave.native="zoomOn = null"
-					      @click.native="toggleCardSelection(card)" class="cursor-pointer card--small"
-					      :class="{'card--selected border-blue-500': isCardSelected(card)}"
-					      :style="{zIndex: card === zoomOn ? 20 : i+5, transform: handCardTfm(i, card)}"/>
-				</div>
-			</div>
 		</div>
 
 		<div v-if="isRoomPlaying && round.state.startsWith('reveal:')" class="h-full w-full flex flex-col items-center">
@@ -112,6 +85,42 @@
 						{{ getPlayer(parseInt(player_id)).username }}
 					</p>
 				</div>
+			</div>
+		</div>
+
+		<div class="hand w-full text-center fixed bottom-0 z-10" :class="{'hand--hide':hideHand}">
+			<template v-if="isRoundDrawing('white-card')">
+				<template v-if="!isJuge()">
+					<button v-if="showDrawCardsBtn" @click="playSelectedCards" :disabled="played"
+					        class="mx-auto bg-blue-500 hover:bg-blue-700 text-white font-bold text-center
+									py-3 px-4 rounded focus:outline-none focus:shadow-outline block mb-8">
+						<template v-if="selectedCards.length > 1">Jouer ces cartes</template>
+						<template v-else>Jouer cette carte</template>
+					</button>
+					<p v-else-if="!hideHand" class="text-gray-700 mb-8">
+						Sélectionnez {{ round.black_card.blanks }}
+						<template v-if="round.black_card.blanks > 1">cartes dans l'ordre</template>
+						<template v-else>carte</template>
+						à associer avec cette carte noire.
+					</p>
+				</template>
+				<p v-else class="text-gray-700 mb-8">
+					Les autres joueurs sélectionnent leurs réponses.
+				</p>
+			</template>
+			<template v-else-if="round.state === 'reveal:usernames' && isHost && requested !== 'newRound'">
+				<button @click="newRound"
+				        class="mx-auto bg-blue-500 hover:bg-blue-700 text-white font-bold text-center
+									py-3 px-4 rounded focus:outline-none focus:shadow-outline block mb-8">
+					Lancer la manche suivante
+				</button>
+			</template>
+			<div class="flex justify-center mb-8">
+				<Card v-for="(card,i) in hand" :key="i" :card="hideHand ? {} : card"
+				      @mouseenter.native="zoomOn = card" @mouseleave.native="zoomOn = null"
+				      @click.native="toggleCardSelection(card)" class="cursor-pointer card--small"
+				      :class="{'card--selected border-blue-500': isCardSelected(card)}"
+				      :style="{zIndex: card === zoomOn ? 20 : i+5, transform: handCardTfm(i, card)}"/>
 			</div>
 		</div>
 
@@ -161,28 +170,36 @@
 				.here(players => players.forEach(player => this.$store.commit('addConnectedPlayer', {player})))
 				.joining(player => this.$store.commit('addConnectedPlayer', {player}))
 				.leaving(player => this.$store.commit('removeConnectedPlayer', {player}))
-				.listen("PlayerJoinedEvent", ({players}) => this.$store.commit('addPlayers', {players}))
+				.listen("PlayerJoinedEvent", ({players}) => {
+					console.log("PlayerJoinedEvent", {players});
+					this.$store.commit('addPlayers', {players})
+				})
 				.listen("StateChangedEvent", ({room, round}) => {
+					console.log("StateChangedEvent", {room, round});
 					this.$store.commit('setRoom', {room});
 					this.$store.commit('setRound', {round});
 				})
 				.listen("CardsPlayedEvent", ({room, round, amount}) => {
+					console.log("CardsPlayedEvent", {room, round, amount});
 					this.$store.commit('setRoom', {room});
 					this.$store.commit('setRound', {round});
 					this.throwFakeCards(amount);
 				})
 				.listen("PlayerRevealedEvent", ({room, round, player}) => {
+					console.log("PlayerRevealedEvent", {room, round, player});
 					this.$store.commit('setRoom', {room});
 					this.$store.commit('setRound', {round});
 				});
 
 			echo.private(this.private_channel)
 				.listen("NewRoundEvent", ({room, round, hand}) => {
+					console.log("NewRoundEvent", {room, round, hand});
 					this.$store.commit('setRoom', {room});
 					this.$store.commit('setRound', {round});
 					this.$store.commit('setHand', {hand});
 					this.blackCardAngle = Math.round((Math.random() * 30) - 15);
 					this.clearFakeCards();
+					this.$forceUpdate();
 				});
 
 			if (this.$store.state.round.black_card) {
@@ -199,6 +216,7 @@
 				blackCardAngle: Math.round((Math.random() * 30) - 15),
 				starting: false,
 				rotations: [],
+				requested: null,
 			}
 		},
 		methods: {
@@ -260,7 +278,6 @@
 					})
 			},
 			drawBlackCard() {
-				console.log("Draw black card");
 				this.$store.dispatch("drawCard", {type: 'black', amount: 1});
 			},
 			handCardTfm(index, card) {
@@ -273,6 +290,16 @@
 			revealPlayer({id}) {
 				if (this.$store.getters.isPlayerRevealed({id})) return;
 				this.$store.dispatch("revealPlayer", {id});
+			},
+			newRound() {
+				if (this.requested) return;
+				this.requested = 'newRound';
+				this.$store.dispatch("newRound")
+					.then(res => {
+						if (res !== true) {
+							this.requested = null;
+						}
+					})
 			}
 		},
 		computed: {

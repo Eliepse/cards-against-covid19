@@ -202,4 +202,12 @@ class RoomPolicy
 		return false;
 	}
 
+
+	public function newRound(User $user, Room $room): bool
+	{
+		if (!$room->isPlaying()) return false;
+		if ($room->host->isNot($user)) return false;
+
+		return true;
+	}
 }

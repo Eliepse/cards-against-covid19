@@ -16,6 +16,7 @@ use App\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 
 class RoomController
 {
@@ -61,7 +62,7 @@ class RoomController
 	 */
 	public function startPlaying(Request $request, Room $room)
 	{
-		// Check if the person have the RIGHT to do before checking if it's possible to do it
+		// TODO: Check if the person have the RIGHT to do before checking if it's possible to do it
 
 		if (!$room->host->is($request->user())) {
 			throw new AuthorizationException("Only the host can start the game.");
@@ -80,29 +81,29 @@ class RoomController
 		$room->changeToNextJuge();
 		$room->save();
 
-		$card_stacks = Card::query()
+		$cards = Card::query()
 			->select(['id'])
 			->where("blanks", 0)
 			->inRandomOrder()
 			->limit($room->players->count() * $room->hand_size)
-			->get()
-			->chunk($room->hand_size);
+			->get();
 
-		$round = $room->round;
-		$round->state = RoomRound::STATE_DRAW_BLACK_CARD;
-		$round->save();
+		$card_stacks = $cards->chunk($room->hand_size);
+		$room->dump->addCards($cards);
 
-		$hands = $room->hands;
-		$room->players->each(fn($p, $i) => $hands->setForUser($p, $card_stacks->get($i)->pluck("id")->toArray()));
-		$hands->save();
+		$room->round->state = RoomRound::STATE_DRAW_BLACK_CARD;
+		$room->round->save();
+
+		$room->players->each(fn($p, $i) => $room->hands->setForUser($p, $card_stacks->get($i)->pluck("id")->toArray()));
+		$room->hands->save();
 
 		broadcast(new StateChangedEvent($room))->toOthers();
 		$room->players->each(fn(User $player) => broadcast(new NewRoundEvent($room, $player)));
 
 		return [
-			"round" => $round,
+			"round" => $room->round,
 			"room" => $room,
-			"hand" => Card::fetchHandCardsList($hands->getForUser($request->user())),
+			"hand" => Card::fetchHandCardsList($room->hands->getForUser($request->user())),
 		];
 	}
 
@@ -228,6 +229,7 @@ class RoomController
 	 * @param RevealPlayerRequest $request
 	 * @param Room $room
 	 *
+	 * @return array
 	 * @throws AuthorizationException
 	 */
 	public function revealPlayer(RevealPlayerRequest $request, Room $room)
@@ -248,6 +250,50 @@ class RoomController
 			"room" => $room,
 			"round" => $room->round,
 			"player" => $player,
+		];
+	}
+
+
+	/**
+	 * @param Request $request
+	 * @param Room $room
+	 *
+	 * @return array
+	 * @throws AuthorizationException
+	 */
+	public function newRound(Request $request, Room $room)
+	{
+		$this->authorize("newRound", $room);
+
+		$room->changeToNextJuge();
+		$room->save();
+
+		$room->round->reset()->save();
+		$totalHand = collect($room->hands->hands)->flatten();
+		$expectedCount = $room->hand_size * $room->players->count();
+
+		$newCards = Card::query()
+			->select(["id"])
+			->whereNotIn("id", $room->dump->ids)
+			->inRandomOrder()
+			->limit($expectedCount - $totalHand->count())
+			->get();
+
+		foreach ($room->players as $player) {
+			$handCount = count($room->hands->getForUser($player));
+			$room->hands->addToUser($player, $newCards->splice($handCount)->pluck("id")->toArray());
+		}
+
+		$room->hands->save();
+
+		foreach ($room->players as $player) {
+			broadcast(new NewRoundEvent($room, $player));
+		}
+
+		return [
+			"round" => $room->round,
+			"room" => $room,
+			"hand" => Card::fetchHandCardsList($room->hands->getForUser($request->user())),
 		];
 	}
 }

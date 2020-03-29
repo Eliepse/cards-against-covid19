@@ -98,7 +98,7 @@ export default new Vuex.Store({
 			try {
 				const response = await axios.post(`/api/room/${this.state.room.id}/draw`, {type, amount});
 				ctx.commit('setRound', {round: response.data.round});
-				ctx.commit('setHand', {round: response.data.hand});
+				ctx.commit('setHand', {cards: response.data.hand});
 				return true;
 			} catch (error) {
 				console.error(error);
@@ -129,7 +129,7 @@ export default new Vuex.Store({
 				);
 				ctx.commit('setRoom', {room: response.data.room});
 				ctx.commit('setRound', {round: response.data.round});
-				ctx.commit('setHand', {hand: response.data.hand});
+				ctx.commit('setHand', {cards: response.data.hand});
 				return true;
 			} catch (error) {
 				console.error(error.response.data.message);
@@ -142,6 +142,17 @@ export default new Vuex.Store({
 					`/api/room/${this.state.room.id}/reveal:player`,
 					{player_id: id}
 				);
+				ctx.commit('setRoom', {room: response.data.room});
+				ctx.commit('setRound', {round: response.data.round});
+				return true;
+			} catch (error) {
+				console.error(error.response.data.message);
+				return {"message": error.response.data.message};
+			}
+		},
+		newRound: async function(ctx) {
+			try {
+				const response = await axios.post(`/api/room/${this.state.room.id}/round`);
 				ctx.commit('setRoom', {room: response.data.room});
 				ctx.commit('setRound', {round: response.data.round});
 				return true;
