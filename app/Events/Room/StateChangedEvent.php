@@ -47,6 +47,7 @@ class StateChangedEvent implements ShouldBroadcast
 	}
 
 
+	/** @noinspection PhpUnused */
 	public function broadcastWith(): array
 	{
 		return [

@@ -159,7 +159,7 @@ class RoomController
 
 		return [
 			"round" => $round,
-			"hand" => $hands->getForUser($user),
+			"hand" => Card::fetchHandCardsList($hands->getForUser($user)),
 			"cards" => $cards,
 		];
 	}
@@ -220,7 +220,7 @@ class RoomController
 		return [
 			"room" => $room,
 			"round" => $room->round,
-			"hand" => $room->hands->getForUser($user),
+			"hand" => Card::fetchHandCardsList($room->hands->getForUser($user)),
 		];
 	}
 

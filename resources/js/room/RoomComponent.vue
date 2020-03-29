@@ -196,7 +196,7 @@
 					console.log("NewRoundEvent", {room, round, hand});
 					this.$store.commit('setRoom', {room});
 					this.$store.commit('setRound', {round});
-					this.$store.commit('setHand', {hand});
+					this.$store.commit('setHand', {cards:hand});
 					this.blackCardAngle = Math.round((Math.random() * 30) - 15);
 					this.clearFakeCards();
 					this.$forceUpdate();
