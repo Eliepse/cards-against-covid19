@@ -96,17 +96,21 @@
 			</div>
 		</div>
 
-		<div v-if="isRoomPlaying && round.state === 'reveal:cards'" class="h-full w-full flex flex-col items-center">
+		<div v-if="isRoomPlaying && round.state.startsWith('reveal:')" class="h-full w-full flex flex-col items-center">
 			<div class="flex justify-center items-center mx-16 mt-8 mb-10">
 				<card :card="round.black_card" :style="{transform:'rotateZ('+ blackCardAngle +'deg)'}" class="card--small"/>
 			</div>
-			<div class="flex-1 text-center">
-				<div v-for="(player, i) in playersSelection" :key="i" class="inline-block mb-6 mx-6">
+			<div class="flex-1 flex items-center justify-center">
+				<div v-for="(cards, player_id) in round.played_cards" :key="parseInt(player_id)" class="inline-block mb-6 mx-6">
 					<div class="flex mb-4">
-						<card v-for="(card,j) in player.cards" :key="j" :card="card"
+						<card v-for="(card,j) in cards" :key="j" :card="isPlayerRevealed({id:parseInt(player_id)}) ? card : {}"
+						      :class="{'cursor-pointer': isJuge() && !isPlayerRevealed({id:parseInt(player_id)})}"
+						      @click.native="revealPlayer({id:parseInt(player_id)})"
 						      class="card--small" :style="{transform:'rotateZ('+ ((j * 8)-4) +'deg)', height: '10em', width:'9em'}"/>
 					</div>
-					<p v-if="revealPlayersNames" class="text-sm text-gray-700">{{ player.username }}</p>
+					<p v-if="round.state === 'reveal:usernames'" class="text-sm text-gray-700">
+						{{ getPlayer(parseInt(player_id)).username }}
+					</p>
 				</div>
 			</div>
 		</div>
@@ -166,6 +170,10 @@
 					this.$store.commit('setRoom', {room});
 					this.$store.commit('setRound', {round});
 					this.throwFakeCards(amount);
+				})
+				.listen("PlayerRevealedEvent", ({room, round, player}) => {
+					this.$store.commit('setRoom', {room});
+					this.$store.commit('setRound', {round});
 				});
 
 			echo.private(this.private_channel)
@@ -173,6 +181,7 @@
 					this.$store.commit('setRoom', {room});
 					this.$store.commit('setRound', {round});
 					this.$store.commit('setHand', {hand});
+					this.blackCardAngle = Math.round((Math.random() * 30) - 15);
 					this.clearFakeCards();
 				});
 
@@ -188,8 +197,6 @@
 				fakeCards: [],
 				played: false,
 				blackCardAngle: Math.round((Math.random() * 30) - 15),
-				playersSelection: [],
-				revealPlayersNames: false,
 				starting: false,
 				rotations: [],
 			}
@@ -262,6 +269,10 @@
 			},
 			isCardSelected(card) {
 				return this.selectedCards.find((c) => c.id === card.id);
+			},
+			revealPlayer({id}) {
+				if (this.$store.getters.isPlayerRevealed({id})) return;
+				this.$store.dispatch("revealPlayer", {id});
 			}
 		},
 		computed: {
@@ -287,7 +298,9 @@
 				'isRoomWaiting',
 				'isRoomPlaying',
 				'isRoundDrawing',
-				'hasPlayed'
+				'hasPlayed',
+				'isPlayerRevealed',
+				'getPlayer'
 			])
 		}
 	}

@@ -6,9 +6,11 @@ use App\Cache\RoomRound;
 use App\Card;
 use App\Events\Room\CardsPlayedEvent;
 use App\Events\Room\NewRoundEvent;
+use App\Events\Room\PlayerRevealedEvent;
 use App\Events\Room\StateChangedEvent;
 use App\Http\Requests\DrawCardRequest;
 use App\Http\Requests\PlayWhiteCardsRequest;
+use App\Http\Requests\RevealPlayerRequest;
 use App\Room;
 use App\User;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -218,6 +220,34 @@ class RoomController
 			"room" => $room,
 			"round" => $room->round,
 			"hand" => $room->hands->getForUser($user),
+		];
+	}
+
+
+	/**
+	 * @param RevealPlayerRequest $request
+	 * @param Room $room
+	 *
+	 * @throws AuthorizationException
+	 */
+	public function revealPlayer(RevealPlayerRequest $request, Room $room)
+	{
+		/** @var User $player */
+		$player = User::query()->find($request->get("player_id"));
+		$this->authorize("revealPlayer", [$room, $player]);
+
+		$room->round->revealed_ids[] = $player->id;
+		if (count($room->round->revealed_ids) === $room->players->count() - 1) {
+			$room->round->state = RoomRound::STATE_REVEAL_USERNAMES;
+		}
+		$room->round->save();
+
+		broadcast(new PlayerRevealedEvent($room, $player))->toOthers();
+
+		return [
+			"room" => $room,
+			"round" => $room->round,
+			"player" => $player,
 		];
 	}
 }

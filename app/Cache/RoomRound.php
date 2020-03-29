@@ -15,12 +15,43 @@ class RoomRound extends CacheModel
 	public const STATE_DRAW_WHITE_CARD = "draw:white-card";
 	public const STATE_REVEAL_CARDS = "reveal:cards";
 	public const STATE_REVEAL_USERNAMES = "reveal:usernames";
-	public const STATE_LEADERBOARD = "leaderboard";
 
+	/**
+	 * The current state of this round.
+	 *
+	 * @var string
+	 */
 	public string $state;
+
+	/**
+	 * The black card of this round.
+	 *
+	 * @var int|null
+	 */
 	public ?int $black_card_id = null;
+
+	/**
+	 * IDs of cards played, grouped by players' ID
+	 *
+	 * @var array
+	 */
 	public array $played_cards_ids = [];
+
+	/**
+	 * IDs of players, when they have played
+	 * their white cards.
+	 *
+	 * @var array
+	 */
 	public array $played_ids = [];
+
+	/**
+	 * IDs of players, when their played
+	 * card has been revealed by the juge.
+	 *
+	 * @var array
+	 */
+	public array $revealed_ids = [];
 
 	private Room $room;
 	private ?Card $black_card = null;
@@ -42,6 +73,7 @@ class RoomRound extends CacheModel
 		$this->black_card_id = $attributes["black_card_id"] ?? null;
 		$this->played_cards_ids = $attributes["played_cards_ids"] ?? [];
 		$this->played_ids = $attributes["played_ids"] ?? [];
+		$this->revealed_ids = $attributes["revealed_ids"] ?? [];
 		return $this;
 	}
 
@@ -104,15 +136,18 @@ class RoomRound extends CacheModel
 			"black_card_id" => $this->black_card_id,
 			"black_card" => $this->getBlackCard(),
 			"played_ids" => $this->played_ids,
+			"played_cards_ids" => $this->played_cards_ids,
+			"played_cards" => $this->getWhiteCards(),
+			"revealed_ids" => $this->revealed_ids,
 		];
 	}
 
 
-	public function toSaveArray(): array
-	{
-		return array_merge(
-			parent::toSaveArray(),
-			["played_cards_ids" => $this->played_cards_ids],
-		);
-	}
+//	public function toSaveArray(): array
+//	{
+//		return array_merge(
+//			parent::toSaveArray(),
+//			["played_cards_ids" => $this->played_cards_ids],
+//		);
+//	}
 }

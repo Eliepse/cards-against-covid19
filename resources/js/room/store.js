@@ -47,7 +47,9 @@ export default new Vuex.Store({
 		hasPlayed: state => player => {
 			if (!state.round.played_ids) return false;
 			return state.round.played_ids.includes(player ? player.id : state.user.id);
-		}
+		},
+		isPlayerRevealed: state => ({id}) => state.round.revealed_ids.includes(id),
+		getPlayer: state => id => state.room.players.find(({id: pid}) => pid === id)
 	},
 	mutations: {
 		setUser: (state, {user}) => {state.user = user},
@@ -69,7 +71,7 @@ export default new Vuex.Store({
 			if (state.connectedPlayers.find(p => p.id === player.id))
 				state.connectedPlayers.splice(
 					state.connectedPlayers.findIndex(p => p.id === player.id), 1);
-		},
+		}
 	},
 	actions: {
 		loadRoom: async function (ctx, {id}) {
@@ -128,6 +130,20 @@ export default new Vuex.Store({
 				ctx.commit('setRoom', {room: response.data.room});
 				ctx.commit('setRound', {round: response.data.round});
 				ctx.commit('setHand', {hand: response.data.hand});
+				return true;
+			} catch (error) {
+				console.error(error.response.data.message);
+				return {"message": error.response.data.message};
+			}
+		},
+		revealPlayer: async function (ctx, {id}) {
+			try {
+				const response = await axios.post(
+					`/api/room/${this.state.room.id}/reveal:player`,
+					{player_id: id}
+				);
+				ctx.commit('setRoom', {room: response.data.room});
+				ctx.commit('setRound', {round: response.data.round});
 				return true;
 			} catch (error) {
 				console.error(error.response.data.message);
