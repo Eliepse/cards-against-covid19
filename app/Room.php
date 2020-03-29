@@ -42,6 +42,8 @@ class Room extends Model
 	protected $guarded = [];
 	protected $with = ['host', 'players', 'juge'];
 
+	private array $cacheModels = [];
+
 
 	public function players(): BelongsToMany
 	{
@@ -86,21 +88,27 @@ class Room extends Model
 	/** @noinspection PhpUnused */
 	public function getRoundAttribute(): RoomRound
 	{
-		return RoomRound::find($this);
+		if (empty($this->cacheModels['round']))
+			$this->cacheModels['round'] = RoomRound::find($this);
+		return $this->cacheModels['round'];
 	}
 
 
 	/** @noinspection PhpUnused */
 	public function getHandsAttribute(): RoomHands
 	{
-		return RoomHands::find($this);
+		if (empty($this->cacheModels['hands']))
+			$this->cacheModels['hands'] = RoomHands::find($this);
+		return $this->cacheModels['hands'];
 	}
 
 
 	/** @noinspection PhpUnused */
 	public function getDumpAttribute(): RoomDump
 	{
-		return RoomDump::find($this);
+		if (empty($this->cacheModels['dump']))
+			$this->cacheModels['dump'] = RoomDump::find($this);
+		return $this->cacheModels['dump'];
 	}
 
 
