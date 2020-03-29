@@ -36,4 +36,5 @@ Route::get('/cards/new', [CardController::class, 'create']);
 Route::post('/cards', [CardController::class, 'store']);
 
 Route::get('/room/{room}', [RoomController::class, 'show']);
+Route::delete('/room/{room}', [RoomController::class, 'terminate']);
 Route::post('/room', [RoomController::class, 'store']);

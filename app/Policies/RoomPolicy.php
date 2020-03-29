@@ -210,4 +210,10 @@ class RoomPolicy
 
 		return true;
 	}
+
+
+	public function terminate(User $user, Room $room): bool
+	{
+		return $room->host->is($user);
+	}
 }

@@ -139,4 +139,5 @@ class Room extends Model
 	{
 		return $this->state === self::STATE_TERMINATED;
 	}
+
 }

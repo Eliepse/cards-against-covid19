@@ -40,7 +40,7 @@ class RoomController extends \Illuminate\Routing\Controller
 		$room = Room::query()
 			->where('url', $url)
 			->without(['host'])
-			->firstOrFail(['id', 'url', 'max_players', 'state']);
+			->firstOrFail(['id', 'url', 'max_players', 'state', 'host_id']);
 
 		// TODO: terminate room if not updated after a while (use a middleware to set it up on all routes)
 
@@ -80,5 +80,25 @@ class RoomController extends \Illuminate\Routing\Controller
 		$user->playedRooms()->attach($room);
 
 		return redirect()->action([self::class, 'show'], $room->url);
+	}
+
+
+	/**
+	 * @param Room $room
+	 *
+	 * @return RedirectResponse
+	 * @throws AuthorizationException
+	 */
+	public function terminate(Room $room)
+	{
+		$this->authorize("terminate", $room);
+
+		$room->state = Room::STATE_TERMINATED;
+		$room->round->delete();
+		$room->dump->delete();
+		$room->hands->delete();
+		$room->save();
+
+		return redirect()->action([HomeController::class, 'index']);
 	}
 }

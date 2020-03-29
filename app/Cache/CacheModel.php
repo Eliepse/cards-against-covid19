@@ -46,6 +46,12 @@ abstract class CacheModel implements Arrayable, \JsonSerializable
 	}
 
 
+	public function delete(): bool
+	{
+		return Cache::forget($this->id);
+	}
+
+
 	public function toSaveArray(): array
 	{
 		return $this->toArray();
