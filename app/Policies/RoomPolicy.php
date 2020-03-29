@@ -189,7 +189,7 @@ class RoomPolicy
 	public function revealPlayer(User $user, Room $room, User $player)
 	{
 		if (!$room->isPlaying()) return false;
-		if (!$room->juge && $room->juge->is($user)) return false;
+		if (!$room->juge || $room->juge->isNot($user)) return false;
 		if (!$room->players->containsStrict('id', $player->id)) return false;
 		if ($room->round->state !== RoomRound::STATE_REVEAL_CARDS) return false;
 

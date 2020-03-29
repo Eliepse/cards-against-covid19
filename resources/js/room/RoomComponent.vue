@@ -288,6 +288,7 @@
 				return this.selectedCards.find((c) => c.id === card.id);
 			},
 			revealPlayer({id}) {
+				if (!this.$store.getters.isJuge()) return;
 				if (this.$store.getters.isPlayerRevealed({id})) return;
 				this.$store.dispatch("revealPlayer", {id});
 			},
