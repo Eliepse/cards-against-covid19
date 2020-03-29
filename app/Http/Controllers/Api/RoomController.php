@@ -272,16 +272,19 @@ class RoomController
 		$totalHand = collect($room->hands->hands)->flatten();
 		$expectedCount = $room->hand_size * $room->players->count();
 
+
 		$newCards = Card::query()
 			->select(["id"])
 			->whereNotIn("id", $room->dump->ids)
+			->where("blanks", 0)
 			->inRandomOrder()
 			->limit($expectedCount - $totalHand->count())
 			->get();
 
 		foreach ($room->players as $player) {
-			$handCount = count($room->hands->getForUser($player));
-			$room->hands->addToUser($player, $newCards->splice($handCount)->pluck("id")->toArray());
+			$missingCards = $room->hand_size - count($room->hands->getForUser($player));
+			$cards = $newCards->splice(0, $missingCards)->pluck("id")->toArray();
+			$room->hands->addToUser($player, $cards);
 		}
 
 		$room->hands->save();
