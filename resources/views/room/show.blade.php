@@ -4,7 +4,7 @@
 
 @section('base')
 	@include("layouts.room-navigation")
-	<div id="app" class="">
+	<div id="app" class="bg-gray-200">
 		<div id="room" class="h-screen">
 			<room :user_id="{{ Auth::user()->id }}"
 			      :room_id="{{ $room->id }}"

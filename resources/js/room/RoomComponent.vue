@@ -27,7 +27,7 @@
 				<p class="mt-8 text-gray-700">{{ players.length }} / {{ room.max_players }}</p>
 			</div>
 			<button v-if="user_id === room.host_id && players.length >= 2" @click="startRoom"
-			        :class="{'opacity-75':starting}" :disabled="starting"
+			        :class="{'opacity-75':loading}" :disabled="loading"
 			        class="w-full max-w-xs mx-auto bg-blue-500 hover:bg-blue-700 text-white font-bold text-center
 			     py-3 px-4 rounded focus:outline-none focus:shadow-outline block mt-4">
 				Démarrer la partie
@@ -53,7 +53,7 @@
 								c'est à vous de piocher la carte noire.
 							</p>
 							<button @click="drawBlackCard"
-							        :class="{'opacity-75':starting}" :disabled="starting"
+							        :class="{'opacity-75':loading}" :disabled="loading"
 							        class="bg-gray-900 text-gray-100 hover:bg-gray-700 font-bold mx-auto
 					                    py-3 px-4 rounded focus:outline-none focus:shadow-outline block mt-4">
 								Piocher une carte noire
@@ -91,7 +91,7 @@
 		<div class="hand w-full text-center fixed bottom-0 z-10" :class="{'hand--hide':hideHand}">
 			<template v-if="isRoundDrawing('white-card')">
 				<template v-if="!isJuge()">
-					<button v-if="showDrawCardsBtn" @click="playSelectedCards" :disabled="played"
+					<button v-if="showDrawCardsBtn" @click="playSelectedCards" :disabled="loading"
 					        class="mx-auto bg-blue-500 hover:bg-blue-700 text-white font-bold text-center
 									py-3 px-4 rounded focus:outline-none focus:shadow-outline block mb-8">
 						<template v-if="selectedCards.length > 1">Jouer ces cartes</template>
@@ -108,12 +108,15 @@
 					Les autres joueurs sélectionnent leurs réponses.
 				</p>
 			</template>
-			<template v-else-if="round.state === 'reveal:usernames' && isHost && requested !== 'newRound'">
+			<template v-else-if="round.state === 'reveal:usernames' && isHost && !loading">
 				<button @click="newRound"
 				        class="mx-auto bg-blue-500 hover:bg-blue-700 text-white font-bold text-center
 									py-3 px-4 rounded focus:outline-none focus:shadow-outline block mb-8">
 					Lancer la manche suivante
 				</button>
+			</template>
+			<template v-else-if="round.state === 'reveal:cards' && isJuge()">
+				<p class="text-gray-700 mb-8">Révélez les cartes que les joueurs ont lancé.</p>
 			</template>
 			<div class="flex justify-center mb-8">
 				<Card v-for="(card,i) in hand" :key="i" :card="hideHand ? {} : card"
@@ -181,9 +184,9 @@
 				})
 				.listen("CardsPlayedEvent", ({room, round, amount}) => {
 					console.log("CardsPlayedEvent", {room, round, amount});
+					this.throwFakeCards(amount);
 					this.$store.commit('setRoom', {room});
 					this.$store.commit('setRound', {round});
-					this.throwFakeCards(amount);
 				})
 				.listen("PlayerRevealedEvent", ({room, round, player}) => {
 					console.log("PlayerRevealedEvent", {room, round, player});
@@ -196,7 +199,7 @@
 					console.log("NewRoundEvent", {room, round, hand});
 					this.$store.commit('setRoom', {room});
 					this.$store.commit('setRound', {round});
-					this.$store.commit('setHand', {cards:hand});
+					this.$store.commit('setHand', {cards: hand});
 					this.blackCardAngle = Math.round((Math.random() * 30) - 15);
 					this.clearFakeCards();
 					this.$forceUpdate();
@@ -206,22 +209,21 @@
 				const amount = this.$store.state.round.black_card.blanks;
 				this.throwFakeCards(this.$store.state.round.played_ids.length * amount);
 			}
+			this.loading = false;
 		},
 		data() {
 			return {
 				zoomOn: null,
 				selectedCards: [],
 				fakeCards: [],
-				played: false,
 				blackCardAngle: Math.round((Math.random() * 30) - 15),
-				starting: false,
 				rotations: [],
-				requested: null,
+				loading: true,
 			}
 		},
 		methods: {
 			toggleCardSelection(card) {
-				if (this.hideHand && this.played) return;
+				if (this.hideHand || this.loading) return;
 
 				const i = this.selectedCards.findIndex((c) => c.id === card.id);
 				if (i >= 0) {
@@ -235,19 +237,18 @@
 				this.$forceUpdate();
 			},
 			playSelectedCards() {
-				if (this.played) return;
+				if (this.loading) return;
 				// Check if enough cards has been selected
 				if (this.selectedCards.length !== this.$store.state.round.black_card.blanks) return;
 
-				this.played = true;
+				this.loading = true;
 
 				this.$store.dispatch("playCards", {cards: this.selectedCards})
 					.then(res => {
-						if (res === true) {
-
-						} else {
-							setTimeout(() => this.played = false, 500);
+						if (res !== true) {
+							alert(res.message);
 						}
+						this.loading = false;
 					})
 			},
 			throwFakeCards(amount) {
@@ -267,14 +268,14 @@
 				this.fakeCards = [];
 			},
 			startRoom() {
-				if (this.starting) return;
-				this.starting = true;
+				if (this.loading) return;
+				this.loading = true;
 				this.$store.dispatch('startRoom')
 					.then((res) => {
 						if (res !== true) {
 							alert(res.message);
-							this.starting = false
 						}
+						this.loading = false
 					})
 			},
 			drawBlackCard() {
@@ -288,18 +289,29 @@
 				return this.selectedCards.find((c) => c.id === card.id);
 			},
 			revealPlayer({id}) {
+				if (this.loading) return;
 				if (!this.$store.getters.isJuge()) return;
 				if (this.$store.getters.isPlayerRevealed({id})) return;
-				this.$store.dispatch("revealPlayer", {id});
+
+				this.loading = true;
+
+				this.$store.dispatch("revealPlayer", {id})
+					.then((res) => {
+						if (res !== true) {
+							alert(res.message);
+						}
+						this.loading = false
+					})
 			},
 			newRound() {
-				if (this.requested) return;
-				this.requested = 'newRound';
+				if (this.loading) return;
+				this.loading = true;
 				this.$store.dispatch("newRound")
 					.then(res => {
 						if (res !== true) {
-							this.requested = null;
+							alert(res.message);
 						}
+						this.loading = false
 					})
 			}
 		},
