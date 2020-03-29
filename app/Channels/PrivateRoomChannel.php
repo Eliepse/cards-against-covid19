@@ -6,9 +6,9 @@ namespace App\Channels;
 
 use App\Room;
 use App\User;
-use Illuminate\Broadcasting\PresenceChannel;
+use Illuminate\Broadcasting\PrivateChannel;
 
-class PrivateRoomChannel extends PresenceChannel
+class PrivateRoomChannel extends PrivateChannel
 {
 	/**
 	 * @var Room
@@ -23,7 +23,7 @@ class PrivateRoomChannel extends PresenceChannel
 
 	public function __construct(Room $room, User $user)
 	{
-		parent::__construct("App.Room.{$room->id}");
+		parent::__construct("App.Room.{$room->id}.{$user->id}");
 		$this->room = $room;
 		$this->user = $user;
 	}

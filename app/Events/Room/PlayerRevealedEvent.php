@@ -37,6 +37,7 @@ class PlayerRevealedEvent implements ShouldBroadcast
 	}
 
 
+	/** @noinspection PhpUnused */
 	public function broadcastWith(): array
 	{
 		return [
