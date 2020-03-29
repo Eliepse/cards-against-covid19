@@ -129,6 +129,17 @@ class RoomRound extends CacheModel
 	}
 
 
+	public function reset(): self
+	{
+		$this->state = self::STATE_DRAW_BLACK_CARD;
+		$this->black_card_id = null;
+		$this->played_cards_ids = [];
+		$this->played_ids = [];
+		$this->revealed_ids = [];
+		return $this;
+	}
+
+
 	public function toArray(): array
 	{
 		return [
