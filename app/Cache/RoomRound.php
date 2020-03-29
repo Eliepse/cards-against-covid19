@@ -19,7 +19,8 @@ class RoomRound extends CacheModel
 
 	public string $state;
 	public ?int $black_card_id = null;
-	public array $played_cards_ids;
+	public array $played_cards_ids = [];
+	public array $played_ids = [];
 
 	private Room $room;
 	private ?Card $black_card = null;
@@ -39,7 +40,8 @@ class RoomRound extends CacheModel
 		$attributes = $this->fetchRawAttributes();
 		$this->state = $attributes["state"] ?? self::STATE_DRAW_BLACK_CARD;
 		$this->black_card_id = $attributes["black_card_id"] ?? null;
-		$this->played_cards_ids = $attributes["players_played_cards_ids"] ?? [];
+		$this->played_cards_ids = $attributes["played_cards_ids"] ?? [];
+		$this->played_ids = $attributes["played_ids"] ?? [];
 		return $this;
 	}
 
@@ -71,7 +73,7 @@ class RoomRound extends CacheModel
 
 	public function getWhiteCardsOf(User $user): Collection
 	{
-		return $this->getWhiteCards()->get($user->id);
+		return $this->getWhiteCards()->get($user->id, collect());
 	}
 
 
@@ -85,29 +87,22 @@ class RoomRound extends CacheModel
 	}
 
 
-	public function setWhiteCardsOf(array $cards): self
-	{
-
-		return $this;
-	}
-
-
 	public function toArray(): array
 	{
 		return [
 			"state" => $this->state,
 			"black_card_id" => $this->black_card_id,
 			"black_card" => $this->getBlackCard(),
-			"players_played_cards_ids" => $this->played_cards_ids,
+			"played_ids" => $this->played_ids,
 		];
 	}
 
 
-	/**
-	 * @inheritDoc
-	 */
-	public function toJson($options = 0)
+	public function toSaveArray(): array
 	{
-		return json_encode($this->toArray());
+		return array_merge(
+			parent::toSaveArray(),
+			["played_cards_ids" => $this->played_cards_ids],
+		);
 	}
 }

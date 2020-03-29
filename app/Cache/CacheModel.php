@@ -38,11 +38,17 @@ abstract class CacheModel implements Arrayable, \JsonSerializable
 	{
 		Cache::put(
 			$this->id,
-			$this->toArray(),
+			$this->toSaveArray(),
 			self::CACHE_TIMEMOUT
 		);
 
 		return $this;
+	}
+
+
+	public function toSaveArray(): array
+	{
+		return $this->toArray();
 	}
 
 
