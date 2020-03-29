@@ -19,7 +19,7 @@ class RoomRound extends CacheModel
 
 	public string $state;
 	public ?int $black_card_id = null;
-	public array $players_played_cards_ids;
+	public array $played_cards_ids;
 
 	private Room $room;
 	private ?Card $black_card = null;
@@ -39,7 +39,7 @@ class RoomRound extends CacheModel
 		$attributes = $this->fetchRawAttributes();
 		$this->state = $attributes["state"] ?? self::STATE_DRAW_BLACK_CARD;
 		$this->black_card_id = $attributes["black_card_id"] ?? null;
-		$this->players_played_cards_ids = $attributes["players_played_cards_ids"] ?? [];
+		$this->played_cards_ids = $attributes["players_played_cards_ids"] ?? [];
 		return $this;
 	}
 
@@ -61,9 +61,9 @@ class RoomRound extends CacheModel
 
 	public function getWhiteCards(): Collection
 	{
-		if (empty($this->players_played_cards_ids))
+		if (empty($this->played_cards_ids))
 			return collect();
-		$ids = Arr::flatten($this->players_played_cards_ids);
+		$ids = Arr::flatten($this->played_cards_ids);
 		$this->white_cards = $this->white_cards ?: collect(Card::fetchHandCardsList($ids));
 		return $this->white_cards;
 	}
@@ -72,6 +72,16 @@ class RoomRound extends CacheModel
 	public function getWhiteCardsOf(User $user): Collection
 	{
 		return $this->getWhiteCards()->get($user->id);
+	}
+
+
+	public function addPlayedCardBy(User $user, array $ids): self
+	{
+		$this->played_cards_ids[ $user->id ] = array_merge(
+			$this->played_cards_ids[ $user->id ] ?? [],
+			$ids
+		);
+		return $this;
 	}
 
 
@@ -88,7 +98,7 @@ class RoomRound extends CacheModel
 			"state" => $this->state,
 			"black_card_id" => $this->black_card_id,
 			"black_card" => $this->getBlackCard(),
-			"players_played_cards_ids" => $this->players_played_cards_ids,
+			"players_played_cards_ids" => $this->played_cards_ids,
 		];
 	}
 

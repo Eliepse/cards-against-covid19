@@ -39,9 +39,23 @@ class RoomHands extends CacheModel
 	}
 
 
-	public function setForUser(User $user, array $cards_id): self
+	public function setForUser(User $u, array $card_ids): self
 	{
-		$this->hands[ $user->id ] = $cards_id;
+		$this->hands[ $u->id ] = $card_ids;
+		return $this;
+	}
+
+
+	public function addToUser(User $u, array $card_ids): self
+	{
+		$this->hands[ $u->id ] = array_merge($this->hands[ $u->id ] ?? [], $card_ids);
+		return $this;
+	}
+
+
+	public function removeFromUser(User $u, array $card_ids): self
+	{
+		$this->hands[ $u->id ] = array_values(array_diff($this->hands[ $u->id ] ?? [], $card_ids));
 		return $this;
 	}
 
