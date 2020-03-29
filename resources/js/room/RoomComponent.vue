@@ -201,6 +201,7 @@
 					this.$store.commit('setRound', {round});
 					this.$store.commit('setHand', {cards: hand});
 					this.blackCardAngle = Math.round((Math.random() * 30) - 15);
+					this.selectedCards = [];
 					this.clearFakeCards();
 					this.$forceUpdate();
 				});
@@ -248,6 +249,7 @@
 						if (res !== true) {
 							alert(res.message);
 						}
+						this.selectedCards = [];
 						this.loading = false;
 					})
 			},
