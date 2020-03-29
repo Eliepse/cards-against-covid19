@@ -66,7 +66,17 @@ class RoomRound extends CacheModel
 		if (empty($this->played_cards_ids))
 			return collect();
 		$ids = Arr::flatten($this->played_cards_ids);
-		$this->white_cards = $this->white_cards ?: collect(Card::fetchHandCardsList($ids));
+		$cards = Card::query()->select(["id", "text"])->findMany($ids);
+
+		if ($this->white_cards->isEmpty()) {
+			$this->white_cards = collect(
+				array_map(
+					fn($c_ids) => $cards->whereInStrict("id", $c_ids),
+					$this->played_cards_ids
+				)
+			);
+		}
+
 		return $this->white_cards;
 	}
 

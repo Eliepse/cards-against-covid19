@@ -5,10 +5,7 @@ namespace App\Events\Room;
 use App\Channels\PresenceRoomChannel;
 use App\Room;
 use App\User;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -58,6 +55,7 @@ class PlayerJoinedEvent implements ShouldBroadcast
 	}
 
 
+	/** @noinspection PhpUnused */
 	public function broadcastWith(): array
 	{
 		return [

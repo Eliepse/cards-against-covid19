@@ -6,10 +6,7 @@ use App\Card;
 use App\Channels\PrivateRoomChannel;
 use App\Room;
 use App\User;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -53,6 +50,7 @@ class NewRoundEvent implements ShouldBroadcast
 	}
 
 
+	/** @noinspection PhpUnused */
 	public function broadcastWith(): array
 	{
 		return [

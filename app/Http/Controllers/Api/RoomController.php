@@ -33,11 +33,20 @@ class RoomController
 	public function show(Request $request, Room $room): array
 	{
 		$this->authorize('view', $room);
-		return [
+		$data = [
 			"room" => $room,
 			"round" => $room->round,
 			"hand" => Card::fetchHandCardsList($room->hands->getForUser($request->user())),
 		];
+
+		if ($room->juge && $room->juge->is($request->user())) {
+			$data["round"] = array_merge(
+				$room->round->toArray(),
+				["played_cards" => $room->round->getWhiteCards()]
+			);
+		}
+
+		return $data;
 	}
 
 
