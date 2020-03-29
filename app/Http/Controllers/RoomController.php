@@ -42,6 +42,8 @@ class RoomController extends \Illuminate\Routing\Controller
 			->without(['host'])
 			->firstOrFail(['id', 'url', 'max_players', 'state']);
 
+		// TODO: terminate room if not updated after a while (use a middleware to set it up on all routes)
+
 		$this->authorize('join', $room);
 
 //		$cache_key = "App.Room.{$room->id}";

@@ -1,4 +1,4 @@
-<div class="fixed top-0 left-0 right-0 flex justify-between bg-white px-8 py-4">
+<div class="fixed top-0 left-0 right-0 flex justify-between bg-white px-8 py-4 z-50">
 	<span class="font-black text-blue-700">CAC</span>
 	@auth
 		<ul>

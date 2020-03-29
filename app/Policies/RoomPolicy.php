@@ -175,9 +175,14 @@ class RoomPolicy
 	}
 
 
-	public function drawWhiteCard(User $user, Room $room): bool
+	public function playWhiteCards(User $user, Room $room, int $amount): bool
 	{
-		return false;
+		if (!$room->players->containsStrict('id', $user->id)) return false;
+		if (!$room->isPlaying()) return false;
+		if ($room->juge->is($user)) return false;
+		if ($room->round->state !== RoomRound::STATE_DRAW_WHITE_CARD) return false;
+
+		return $room->round->getWhiteCardsOf($user)->count() + $amount <= $room->round->getBlackCard()->blanks;
 	}
 
 

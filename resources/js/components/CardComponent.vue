@@ -58,5 +58,6 @@
 		width: 11em;
 		height: 12.5em;
 		user-select: none;
+		transition: transform 35ms;
 	}
 </style>

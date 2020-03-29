@@ -32,7 +32,6 @@
 			     py-3 px-4 rounded focus:outline-none focus:shadow-outline block mt-4">
 				Démarrer la partie
 			</button>
-
 		</div>
 
 		<div v-if="isRoomPlaying && isRoundDrawing()" class="h-full w-full flex items-center overflow-hidden pb-20">
@@ -69,25 +68,37 @@
 				</template>
 			</div>
 
-			<div v-if="isRoundDrawing('white-card')" class="hand w-full text-center fixed bottom-0 z-10">
-				<div v-if="!isJuge()" class="flex justify-center mb-8">
-					<Card v-for="(card,i) in hand" :key="i" :card="card"
-					      @mouseenter.native="zoomOn = card"
-					      @mouseleave.native="zoomOn = null"
-					      @click.native="toggleCardSelection(card)"
-					      class="cursor-pointer"
-					      :class="{'card--small':true, 'card--zoomed':card === zoomOn, 'card--selected border-blue-500': selectedCards[card.id]}"
-					      :style="{zIndex: card === zoomOn ? 20 : i+5}"/>
-				</div>
+			<div class="hand w-full text-center fixed bottom-0 z-10" :class="{'hand--hide':hideHand}">
+				<template v-if="!isJuge()">
+					<button v-if="showDrawCardsBtn" @click="playSelectedCards" :disabled="played"
+					        class="mx-auto bg-blue-500 hover:bg-blue-700 text-white font-bold text-center
+									py-3 px-4 rounded focus:outline-none focus:shadow-outline block mb-8">
+						<template v-if="selectedCards.length > 1">Jouer ces cartes</template>
+						<template v-else>Jouer cette carte</template>
+					</button>
+					<p v-else-if="!hideHand" class="text-gray-700 mb-8">
+						Sélectionnez {{ round.black_card.blanks }}
+						<template v-if="round.black_card.blanks > 1">cartes dans l'ordre</template>
+						<template v-else>carte</template>
+						à associer avec cette carte noire.
+					</p>
+				</template>
 				<p v-else class="text-gray-700 mb-8">
 					Les autres joueurs sélectionnent leurs réponses.
 				</p>
+				<div class="flex justify-center mb-8">
+					<Card v-for="(card,i) in hand" :key="i" :card="hideHand ? {} : card"
+					      @mouseenter.native="zoomOn = card" @mouseleave.native="zoomOn = null"
+					      @click.native="toggleCardSelection(card)" class="cursor-pointer card--small"
+					      :class="{'card--selected border-blue-500': isCardSelected(card)}"
+					      :style="{zIndex: card === zoomOn ? 20 : i+5, transform: handCardTfm(i, card)}"/>
+				</div>
 			</div>
 		</div>
 
 		<div v-if="isRoomPlaying && round.state === 'reveal:cards'" class="h-full w-full flex flex-col items-center">
 			<div class="flex justify-center items-center mx-16 mt-8 mb-10">
-				<card :card="blackCard" :style="{transform:'rotateZ('+ blackCardAngle +'deg)'}" class="card--small"/>
+				<card :card="round.black_card" :style="{transform:'rotateZ('+ blackCardAngle +'deg)'}" class="card--small"/>
 			</div>
 			<div class="flex-1 text-center">
 				<div v-for="(player, i) in playersSelection" :key="i" class="inline-block mb-6 mx-6">
@@ -128,6 +139,10 @@
 				required: true
 			}
 		},
+		created() {
+			for (let i = 0; i < 10; i++)
+				this.rotations.push(Math.round(Math.random() * 12) - 6)
+		},
 		async mounted() {
 			await this.$store.dispatch('loadUser', {id: this.room_id});
 			await this.$store.dispatch('loadRoom', {id: this.room_id});
@@ -146,6 +161,11 @@
 				.listen("StateChangedEvent", ({room, round}) => {
 					this.$store.commit('setRoom', {room});
 					this.$store.commit('setRound', {round});
+				})
+				.listen("CardsPlayedEvent", ({room, round, amount}) => {
+					this.$store.commit('setRoom', {room});
+					this.$store.commit('setRound', {round});
+					this.throwFakeCards(amount);
 				});
 
 			echo.private(this.private_channel)
@@ -153,24 +173,57 @@
 					this.$store.commit('setRoom', {room});
 					this.$store.commit('setRound', {round});
 					this.$store.commit('setHand', {hand});
-					// TODO: verifier la réception de cet événement et debug
-				})
+					this.clearFakeCards();
+				});
+
+			if (this.$store.state.round.black_card) {
+				const amount = this.$store.state.round.black_card.blanks;
+				this.throwFakeCards(this.$store.state.round.played_ids.length * amount);
+			}
 		},
 		data() {
 			return {
 				zoomOn: null,
-				selectedCards: {},
+				selectedCards: [],
 				fakeCards: [],
+				played: false,
 				blackCardAngle: Math.round((Math.random() * 30) - 15),
 				playersSelection: [],
 				revealPlayersNames: false,
 				starting: false,
+				rotations: [],
 			}
 		},
 		methods: {
 			toggleCardSelection(card) {
-				this.selectedCards[card.id] = this.selectedCards[card.id] ? null : card;
+				if (this.hideHand && this.played) return;
+
+				const i = this.selectedCards.findIndex((c) => c.id === card.id);
+				if (i >= 0) {
+					// Remove selected card
+					this.selectedCards.splice(i, 1);
+				} else if (this.selectedCards.length < this.$store.state.round.black_card.blanks) {
+					// If there is enough card
+					// Append selected card
+					this.selectedCards.push(card)
+				}
 				this.$forceUpdate();
+			},
+			playSelectedCards() {
+				if (this.played) return;
+				// Check if enough cards has been selected
+				if (this.selectedCards.length !== this.$store.state.round.black_card.blanks) return;
+
+				this.played = true;
+
+				this.$store.dispatch("playCards", {cards: this.selectedCards})
+					.then(res => {
+						if (res === true) {
+
+						} else {
+							setTimeout(() => this.played = false, 500);
+						}
+					})
 			},
 			throwFakeCards(amount) {
 				const o = {x: this.$el.offsetHeight / 2, y: this.$el.offsetWidth / 2};
@@ -200,11 +253,28 @@
 					})
 			},
 			drawBlackCard() {
-				console.log("Draw black card")
+				console.log("Draw black card");
 				this.$store.dispatch("drawCard", {type: 'black', amount: 1});
+			},
+			handCardTfm(index, card) {
+				const pref = this.zoomOn === card && !this.hideHand ? 'scale(1.3) translateY(-15%)' : 'scale(1) translateY(0%)';
+				return `${pref} rotateZ(${this.rotations[index]}deg)`;
+			},
+			isCardSelected(card) {
+				return this.selectedCards.find((c) => c.id === card.id);
 			}
 		},
 		computed: {
+			hideHand: function () {
+				return this.$store.getters.hasPlayed()
+					|| !this.$store.getters.isRoundDrawing("white-card")
+					|| this.$store.getters.isJuge();
+			},
+			showDrawCardsBtn: function () {
+				return !this.hideHand
+					&& this.$store.getters.isRoundDrawing("white-card")
+					&& this.selectedCards.length === this.$store.state.round.black_card.blanks;
+			},
 			...mapState({
 				room: state => state.room,
 				round: state => state.round,
@@ -216,7 +286,8 @@
 				'isHost',
 				'isRoomWaiting',
 				'isRoomPlaying',
-				'isRoundDrawing'
+				'isRoundDrawing',
+				'hasPlayed'
 			])
 		}
 	}
@@ -254,5 +325,16 @@
 	.card--fake {
 		position: fixed;
 		z-index: 3;
+	}
+
+
+	.hand {
+		transform: translateY(0em);
+		transition: transform 250ms ease-out;
+	}
+
+
+	.hand--hide {
+		transform: translateY(10em);
 	}
 </style>

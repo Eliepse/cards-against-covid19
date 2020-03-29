@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Cache\RoomRound;
 use App\Card;
+use App\Events\Room\CardsPlayedEvent;
 use App\Events\Room\NewRoundEvent;
 use App\Events\Room\StateChangedEvent;
 use App\Http\Requests\DrawCardRequest;
+use App\Http\Requests\PlayWhiteCardsRequest;
 use App\Room;
 use App\User;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -147,6 +149,66 @@ class RoomController
 			"round" => $round,
 			"hand" => $hands->getForUser($user),
 			"cards" => $cards,
+		];
+	}
+
+
+	/**
+	 * @param PlayWhiteCardsRequest $request
+	 * @param Room $room
+	 *
+	 * @return array
+	 * @throws AuthorizationException
+	 */
+	public function playWhiteCards(PlayWhiteCardsRequest $request, Room $room)
+	{
+		$card_ids = $request->get('cards');
+		$amount = count($card_ids);
+		$this->authorize('playWhiteCards', [$room, $amount]);
+		$user = $request->user();
+
+		// Check if enough card are played
+		$needed = $room->round->getBlackCard()->blanks;
+		if ($amount !== $needed) {
+			throw new AuthorizationException("You should play the right amount of cards ($needed for this round).");
+		}
+
+		// Check if cards have been dumped
+		if (!empty(array_intersect($room->dump->ids, $card_ids))) {
+			throw new AuthorizationException("You cannot play cards that have already been dumped.");
+		}
+
+		// Check if cards are in hand
+		$valid_cards = array_values(array_intersect($room->hands->getForUser($user), $card_ids));
+		if (count($valid_cards) !== $amount) {
+			throw new AuthorizationException("You cannot play cards that are not part of your hand.");
+		}
+
+		// Add to played cards
+		$room->round->addPlayedCardBy($user, $card_ids);
+		$room->round->played_ids = array_merge($room->round->played_ids, [$user->id]);
+		$room->round->save();
+
+		// Remove card from hand
+		$room->hands
+			->removeFromUser($user, $card_ids)
+			->save();
+
+		// Broadcast event
+		broadcast(new CardsPlayedEvent($room, count($card_ids)));
+
+		// Check if everyone played
+		// The number of players does not include the juge here
+		if (count($room->round->played_ids) === $room->players->count() - 1) {
+			$room->round->state = RoomRound::STATE_REVEAL_CARDS;
+			$room->round->save();
+			broadcast(new StateChangedEvent($room));
+		}
+
+		return [
+			"room" => $room,
+			"round" => $room->round,
+			"hand" => $room->hands->getForUser($user),
 		];
 	}
 }

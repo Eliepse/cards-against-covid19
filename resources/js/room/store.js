@@ -43,6 +43,10 @@ export default new Vuex.Store({
 				return state.round.state === `draw:${modifier}`;
 			}
 			return state.round.state.startsWith('draw');
+		},
+		hasPlayed: state => player => {
+			if (!state.round.played_ids) return false;
+			return state.round.played_ids.includes(player ? player.id : state.user.id);
 		}
 	},
 	mutations: {
@@ -65,7 +69,7 @@ export default new Vuex.Store({
 			if (state.connectedPlayers.find(p => p.id === player.id))
 				state.connectedPlayers.splice(
 					state.connectedPlayers.findIndex(p => p.id === player.id), 1);
-		}
+		},
 	},
 	actions: {
 		loadRoom: async function (ctx, {id}) {
@@ -91,11 +95,12 @@ export default new Vuex.Store({
 		drawCard: async function (ctx, {type, amount}) {
 			try {
 				const response = await axios.post(`/api/room/${this.state.room.id}/draw`, {type, amount});
-				//debugger
-				console.log(response.data)
-				//context.commit('setRoom', {room: response.data});
-			} catch (e) {
-				console.error(e)
+				ctx.commit('setRound', {round: response.data.round});
+				ctx.commit('setHand', {round: response.data.hand});
+				return true;
+			} catch (error) {
+				console.error(error);
+				return {"message": error.response.data.message};
 			}
 		},
 		startRoom: async function (ctx) {
@@ -108,6 +113,21 @@ export default new Vuex.Store({
 				ctx.commit('setRoom', {room: response.data.room});
 				ctx.commit('setRound', {round: response.data.round});
 				ctx.commit('setHand', {cards: response.data.hand});
+				return true;
+			} catch (error) {
+				console.error(error.response.data.message);
+				return {"message": error.response.data.message};
+			}
+		},
+		playCards: async function (ctx, {cards}) {
+			try {
+				const response = await axios.post(
+					`/api/room/${this.state.room.id}/play:white-cards`,
+					{cards: cards.map(card => card.id)}
+				);
+				ctx.commit('setRoom', {room: response.data.room});
+				ctx.commit('setRound', {round: response.data.round});
+				ctx.commit('setHand', {hand: response.data.hand});
 				return true;
 			} catch (error) {
 				console.error(error.response.data.message);
