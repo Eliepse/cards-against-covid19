@@ -16,6 +16,7 @@ use App\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class RoomController
 {
@@ -181,17 +182,33 @@ class RoomController
 		// Check if enough card are played
 		$needed = $room->round->getBlackCard()->blanks;
 		if ($amount !== $needed) {
+			Log::debug("You should play the right amount of cards ($needed for this round).", [
+				"card_ids" => $card_ids,
+				"amount" => $amount,
+				"needed_amount" => $needed,
+			]);
 			throw new AuthorizationException("You should play the right amount of cards ($needed for this round).");
 		}
 
 		// Check if cards have been dumped
 		if (!empty(array_intersect($room->dump->ids, $card_ids))) {
+			// TODO: this control seem to not work according the fact that hands are added to dump when created
+			Log::debug("You cannot play cards that have already been dumped.", [
+				"card_ids" => $card_ids,
+				"cards_in_dump" => array_intersect($room->dump->ids, $card_ids),
+			]);
 			throw new AuthorizationException("You cannot play cards that have already been dumped.");
 		}
 
 		// Check if cards are in hand
-		$valid_cards = array_values(array_intersect($room->hands->getForUser($user), $card_ids));
+		$valid_cards = array_unique(array_values(array_intersect($room->hands->getForUser($user), $card_ids)));
 		if (count($valid_cards) !== $amount) {
+			Log::debug("You cannot play cards that are not part of your hand.", [
+				"card_ids" => $card_ids,
+				"valid_cards" => $valid_cards,
+				"user_hand" => $room->hands->getForUser($user),
+				"needed_amount" => $needed,
+			]);
 			throw new AuthorizationException("You cannot play cards that are not part of your hand.");
 		}
 

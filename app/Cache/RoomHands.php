@@ -48,7 +48,7 @@ class RoomHands extends CacheModel
 
 	public function addToUser(User $u, array $card_ids): self
 	{
-		$this->hands[ $u->id ] = array_merge($this->hands[ $u->id ] ?? [], $card_ids);
+		$this->hands[ $u->id ] = array_unique(array_merge_recursive($this->hands[ $u->id ] ?? [], $card_ids));
 		return $this;
 	}
 
