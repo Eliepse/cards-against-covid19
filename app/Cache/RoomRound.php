@@ -93,32 +93,43 @@ class RoomRound extends CacheModel
 	}
 
 
-	public function getWhiteCards(): Collection
+	public function getWhiteCards(bool $forceUpdate = false): Collection
 	{
 		if (empty($this->played_cards_ids))
 			return collect();
+
+		if (!$this->white_cards->isEmpty() && !$forceUpdate)
+			return $this->white_cards;
+
 		$ids = Arr::flatten($this->played_cards_ids);
 		$cards = Card::query()->select(["id", "text"])->findMany($ids);
 
-		if ($this->white_cards->isEmpty()) {
-			$this->white_cards = collect(
-				array_map(
-					fn($c_ids) => $cards->whereInStrict("id", $c_ids),
-					$this->played_cards_ids
-				)
-			);
+		foreach ($this->played_cards_ids as $player_id => $cards_ids) {
+			$player_cards = collect();
+			foreach ($cards_ids as $position => $id) {
+				$player_cards->put($position, $cards->find($id));
+			}
+			$this->white_cards->put($player_id, $player_cards);
 		}
 
 		return $this->white_cards;
 	}
 
 
-	public function getWhiteCardsOf(User $user): Collection
+	public function getWhiteCardsOf(User $user, bool $forceUpdate = false): Collection
 	{
-		return $this->getWhiteCards()->get($user->id, collect());
+		return $this->getWhiteCards($forceUpdate)->get($user->id, collect());
 	}
 
 
+	/**
+	 * Add the cards a user played, the order is kept
+	 *
+	 * @param User $user
+	 * @param array $ids
+	 *
+	 * @return $this
+	 */
 	public function addPlayedCardBy(User $user, array $ids): self
 	{
 		$this->played_cards_ids[ $user->id ] = array_merge(
