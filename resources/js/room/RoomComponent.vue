@@ -93,8 +93,7 @@
 
 		<hand class="fixed bottom-0 z-10"
 		      ref="hand" :cards="hand"
-		      @submit="playSelectedCards"
-		      :needed="isJuge() || !isRoundDrawing('white-card') ? 0 : neededWhiteCards">
+		      :needed="neededWhiteCards">
 			<template v-if="isRoundDrawing('white-card')">
 				<p v-if="!isJuge()" class="text-gray-700 mb-8">
 					Sélectionnez {{ neededWhiteCards }}
@@ -124,7 +123,6 @@
 </template>
 
 <script>
-	//import Card from '../components/CardComponent'
 	import {mapGetters, mapState} from 'vuex'
 	import Echo from 'laravel-echo';
 	import Hand from './HandComponent';
@@ -211,22 +209,6 @@
 			}
 		},
 		methods: {
-			playSelectedCards({cards, accept, reject}) {
-				if (this.loading) return;
-				this.loading = true;
-				this.$refs.hand.hide();
-				this.$store.dispatch("playCards", {cards})
-					.then(res => {
-						if (res !== true) {
-							reject();
-							alert(res.message);
-						}
-						this.$refs.hand.clearSelection();
-						this.loading = false;
-						this.$refs.hand.show();
-						accept();
-					})
-			},
 			throwFakeCards(amount) {
 				const o = {x: this.$el.offsetHeight / 2, y: this.$el.offsetWidth / 2};
 

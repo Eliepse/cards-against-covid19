@@ -49,7 +49,7 @@
 				rotations: [],
 				selection: [],
 				visible: true,
-				loading: false,
+				submitting: false,
 			}
 		},
 		methods: {
@@ -91,20 +91,21 @@
 			},
 			playSelection() {
 				if (!this.selectionComplete) {
-					this.loading = false;
+					this.submitting = false;
 					return;
 				}
-				if (this.loading) return;
-				this.$emit('submit', {
-					cards: this.selection,
-					accept: () => {
-						this.loading = false;
-						this.clearSelection()
-					},
-					reject: () => {
-						this.loading = false;
-					}
-				})
+				if (this.submitting) return;
+				this.hide();
+				this.$store.dispatch("playCards", {cards: this.selection})
+					.then(res => {
+						if (res !== true) {
+							this.submitting = false;
+							alert(res.message);
+						}
+						this.submitting = false;
+						this.clearSelection();
+						this.show();
+					});
 			},
 			isCardSelected(card) {
 				return this.selection.find((c) => c.id === card.id);
@@ -112,7 +113,10 @@
 		},
 		computed: {
 			shown() {
-				return this.visible && this.needed > 0;
+				return this.visible
+					&& this.needed > 0
+					&& !this.$store.getters.isJuge()
+					&& this.$store.getters.isRoundDrawing('white-card');
 			},
 			hidden() {
 				return !this.shown;
