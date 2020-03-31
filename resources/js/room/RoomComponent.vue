@@ -26,7 +26,7 @@
 				</ul>
 				<p class="mt-8 text-gray-700">{{ players.length }} / {{ room.max_players }}</p>
 			</div>
-			<btn v-if="isHost && players.length >= 2" @click="startRoom" class="mt-4" :disabled="loading">
+			<btn v-if="isHost && players.length >= 2" @click.native="startRoom" class="mt-4" :disabled="loading">
 				Démarrer la partie
 			</btn>
 		</div>
@@ -116,7 +116,6 @@
 
 <script>
 	import {mapGetters, mapState} from 'vuex'
-	import Echo from 'laravel-echo';
 	import Hand from './HandComponent';
 
 	export default {
@@ -140,39 +139,8 @@
 			}
 		},
 		async mounted() {
-			await this.$store.dispatch('loadUser', {id: this.room_id});
-			await this.$store.dispatch('loadRoom', {id: this.room_id});
-
-			const echo = new Echo({
-				broadcaster: 'socket.io',
-				host: window.location.hostname,
-				namespace: 'App.Events.Room'
-			});
-
-			echo.join(this.public_channel)
-				.here(players => players.forEach(player => this.$store.commit('addConnectedPlayer', {player})))
-				.joining(player => this.$store.commit('addConnectedPlayer', {player}))
-				.leaving(player => this.$store.commit('removeConnectedPlayer', {player}))
-				.listen("PlayerJoinedEvent", ({players}) => {
-					console.log("PlayerJoinedEvent", {players});
-					this.$store.commit('addPlayers', {players})
-				})
-				.listen("StateChangedEvent", ({room, round}) => {
-					console.log("StateChangedEvent", {room, round});
-					this.$store.commit('setRoom', {room});
-					this.$store.commit('setRound', {round});
-				})
-				.listen("CardsPlayedEvent", ({room, round, amount}) => {
-					console.log("CardsPlayedEvent", {room, round, amount});
-					this.throwFakeCards(amount);
-					this.$store.commit('setRoom', {room});
-					this.$store.commit('setRound', {round});
-				})
-				.listen("PlayerRevealedEvent", ({room, round, player}) => {
-					console.log("PlayerRevealedEvent", {room, round, player});
-					this.$store.commit('setRoom', {room});
-					this.$store.commit('setRound', {round});
-				});
+			await this.$store.dispatch('initialization', {room_id: this.room_id, public_channel: this.public_channel})
+				.then(channel => {channel.listen("CardsPlayedEvent", ({amount}) => {this.throwFakeCards(amount);})});
 
 			echo.private(this.private_channel)
 				.listen("NewRoundEvent", ({room, round, hand}) => {
@@ -187,8 +155,7 @@
 				});
 
 			if (this.$store.state.round.black_card) {
-				const amount = this.neededWhiteCards;
-				this.throwFakeCards(this.$store.state.round.played_ids.length * amount);
+				this.throwFakeCards(this.$store.state.round.played_ids.length * this.neededWhiteCards);
 			}
 			this.loading = false;
 		},

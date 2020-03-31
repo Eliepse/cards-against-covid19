@@ -5,7 +5,7 @@
 			<slot v-if="!selectionComplete"></slot>
 			<button v-else
 			        @click="playSelection"
-			        :disabled="loading"
+			        :disabled="submitting"
 			        class="mx-auto bg-blue-500 hover:bg-blue-700 text-white font-bold text-center
 									py-3 px-4 rounded focus:outline-none focus:shadow-outline block mb-8">
 				<template v-if="selection.length > 1">Jouer ces cartes</template>

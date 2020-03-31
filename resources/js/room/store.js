@@ -78,6 +78,34 @@ export default new Vuex.Store({
 		}
 	},
 	actions: {
+		initialization: async function (ctx, {room_id, public_channel}) {
+			await ctx.dispatch('loadUser');
+			await ctx.dispatch('loadRoom', {id: room_id});
+
+			return echo.join(public_channel)
+				.here(players => players.forEach(player => ctx.commit('addConnectedPlayer', {player})))
+				.joining(player => ctx.commit('addConnectedPlayer', {player}))
+				.leaving(player => ctx.commit('removeConnectedPlayer', {player}))
+				.listen("PlayerJoinedEvent", ({players}) => {
+					console.log("PlayerJoinedEvent", {players});
+					ctx.commit('addPlayers', {players})
+				})
+				.listen("StateChangedEvent", ({room, round}) => {
+					console.log("StateChangedEvent", {room, round});
+					ctx.commit('setRoom', {room});
+					ctx.commit('setRound', {round});
+				})
+				.listen("CardsPlayedEvent", ({room, round, amount}) => {
+					console.log("CardsPlayedEvent", {room, round, amount});
+					ctx.commit('setRoom', {room});
+					ctx.commit('setRound', {round});
+				})
+				.listen("PlayerRevealedEvent", ({room, round, player}) => {
+					console.log("PlayerRevealedEvent", {room, round, player});
+					ctx.commit('setRoom', {room});
+					ctx.commit('setRound', {round});
+				});
+		},
 		loadRoom: async function (ctx, {id}) {
 			try {
 				const response = await axios.get(`/api/room/${id}`);
