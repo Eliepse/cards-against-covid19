@@ -26,12 +26,9 @@
 				</ul>
 				<p class="mt-8 text-gray-700">{{ players.length }} / {{ room.max_players }}</p>
 			</div>
-			<button v-if="user_id === room.host_id && players.length >= 2" @click="startRoom"
-			        :class="{'opacity-75':loading}" :disabled="loading"
-			        class="w-full max-w-xs mx-auto bg-blue-500 hover:bg-blue-700 text-white font-bold text-center
-			     py-3 px-4 rounded focus:outline-none focus:shadow-outline block mt-4">
+			<btn v-if="isHost && players.length >= 2" @click="startRoom" class="mt-4" :disabled="loading">
 				Démarrer la partie
-			</button>
+			</btn>
 		</div>
 
 		<div v-if="isRoomPlaying && isRoundDrawing()" class="h-full w-full flex items-center overflow-hidden pb-20">
@@ -54,12 +51,9 @@
 								Étant le maître du jeu de cette manche,
 								c'est à vous de piocher la carte noire.
 							</p>
-							<button @click="drawBlackCard"
-							        :class="{'opacity-75':loading}" :disabled="loading"
-							        class="bg-gray-900 text-gray-100 hover:bg-gray-700 font-bold mx-auto
-					                    py-3 px-4 rounded focus:outline-none focus:shadow-outline block mt-4">
+							<btn @click.native="drawBlackCard" class="bt-4" color="black" :disabled="loading">
 								Piocher une carte noire
-							</button>
+							</btn>
 						</template>
 						<template v-else>
 							<p class="text-gray-700">
@@ -106,11 +100,9 @@
 				</p>
 			</template>
 			<template v-else-if="round.state === 'reveal:usernames' && !loading">
-				<button v-if="isHost" @click="newRound"
-				        class="mx-auto bg-blue-500 hover:bg-blue-700 text-white font-bold text-center
-									py-3 px-4 rounded focus:outline-none focus:shadow-outline block mb-8">
+				<btn v-if="isHost" @click.native="newRound" class="mb-8" :disabled="loading">
 					Lancer la manche suivante
-				</button>
+				</btn>
 				<p v-else class="text-gray-700 mb-8">En attente de l'hôte pour le lancement d'une nouvelle manche...</p>
 			</template>
 			<template v-else-if="round.state === 'reveal:cards'">
