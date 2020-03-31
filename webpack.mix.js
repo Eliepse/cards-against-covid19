@@ -17,6 +17,10 @@ mix.disableNotifications()
 	.js('resources/js/room.js', 'public/js')
 	.sass('resources/sass/app.scss', 'public/css')
 	.options({
-		processCssUrls: false,
+		processCssUrls: true,
 		postCss: [tailwindcss('tailwind.config.js')],
 	});
+
+if (mix.inProduction()) {
+	mix.version();
+}
