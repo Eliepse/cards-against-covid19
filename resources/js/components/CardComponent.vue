@@ -1,5 +1,5 @@
 <template>
-	<div v-bind:class="classes"
+	<div :class="classes"
 	     class="card inline-block m-4 border border-gray-300 rounded-lg flex flex-col justify-between shadow-lg p-5 text-lg text-left">
 		<p :class="{'text-gray-500':placeholder && !card.text}">
 			{{ placeholder && !card.text ? placeholder : card.text }}
@@ -28,7 +28,8 @@
 				required: false,
 				default: null
 			},
-			editable: false
+			editable: false,
+			small: false
 		},
 		data() {
 			return {
@@ -42,6 +43,7 @@
 			classes() {
 				let classes = [];
 				classes.push(this.isBlack ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-700');
+				if (this.small) classes.push('card--small');
 				return classes;
 			}
 		},
@@ -59,5 +61,15 @@
 		height: 12.5em;
 		user-select: none;
 		transition: transform 35ms;
+	}
+
+
+	/*noinspection CssUnusedSymbol*/
+	.card--small {
+		position: relative;
+		margin: 0 -1em;
+		font-size: .825rem;
+		width: 11em;
+		height: 12.5em;
 	}
 </style>

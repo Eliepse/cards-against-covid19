@@ -49,7 +49,11 @@ export default new Vuex.Store({
 			return state.round.played_ids.includes(player ? player.id : state.user.id);
 		},
 		isPlayerRevealed: state => ({id}) => state.round.revealed_ids.includes(id),
-		getPlayer: state => id => state.room.players.find(({id: pid}) => pid === id)
+		getPlayer: state => id => state.room.players.find(({id: pid}) => pid === id),
+		neededWhiteCards: function (state) {
+			if (!state.round.black_card) return 0;
+			return state.round.black_card.blanks;
+		}
 	},
 	mutations: {
 		setUser: (state, {user}) => {state.user = user},
@@ -150,7 +154,7 @@ export default new Vuex.Store({
 				return {"message": error.response.data.message};
 			}
 		},
-		newRound: async function(ctx) {
+		newRound: async function (ctx) {
 			try {
 				const response = await axios.post(`/api/room/${this.state.room.id}/round`);
 				ctx.commit('setRoom', {room: response.data.room});

@@ -16,3 +16,4 @@ public/js
 mix-manifest.json
 laravel-echo-server.json
 laravel-echo-server.lock
+public/images

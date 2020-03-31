@@ -36,9 +36,11 @@
 
 		<div v-if="isRoomPlaying && isRoundDrawing()" class="h-full w-full flex items-center overflow-hidden pb-20">
 			<div class="fixed top-0 left-0 w-0 h-0" style="z-index: 2">
-				<card v-for="(fCard,j) in fakeCards" :card='{"text":""}' :key="j"
-				      :style="{top: fCard.x + 'px', left: fCard.y + 'px', transform: 'translate(-50%,-50%) rotateZ('+ fCard.r +'deg)'}"
-				      class="card--small card--fake"/>
+				<card v-for="(fCard,j) in fakeCards" :card='{"text":""}' :key="j" :small="true" class="card--fake"
+				      :style="{
+							top: fCard.x + 'px', left: fCard.y + 'px',
+							transform: 'translate(-50%,-50%) rotateZ('+ fCard.r +'deg)'
+						}"/>
 			</div>
 
 			<div class="roomTable container m-auto flex justify-center items-center" style="z-index: 1" ref="table">
@@ -71,15 +73,16 @@
 
 		<div v-if="isRoomPlaying && round.state.startsWith('reveal:')" class="h-full w-full flex flex-col items-center">
 			<div class="flex justify-center items-center mx-16 mt-8 mb-10">
-				<card :card="round.black_card" :style="{transform:'rotateZ('+ blackCardAngle +'deg)'}" class="card--small"/>
+				<card :card="round.black_card" :style="{transform:'rotateZ('+ blackCardAngle +'deg)'}" :small="true"/>
 			</div>
 			<div class="flex-1 flex items-center justify-center">
-				<div v-for="(cards, player_id) in round.played_cards" :key="parseInt(player_id)" class="inline-block mb-6 mx-6">
+				<div v-for="(cards, player_id) in round.played_cards" :key="parseInt(player_id)"
+				     class="inline-block mb-6 mx-6">
 					<div class="flex mb-4">
 						<card v-for="(card,j) in cards" :key="j" :card="isPlayerRevealed({id:parseInt(player_id)}) ? card : {}"
 						      :class="{'cursor-pointer': isJuge() && !isPlayerRevealed({id:parseInt(player_id)})}"
 						      @click.native="revealPlayer({id:parseInt(player_id)})"
-						      class="card--small" :style="{transform:'rotateZ('+ ((j * 8)-4) +'deg)', height: '10em', width:'9em'}"/>
+						      :small="true" :style="{transform:'rotateZ('+ ((j * 8)-4) +'deg)', height: '10em', width:'9em'}"/>
 					</div>
 					<p v-if="round.state === 'reveal:usernames'" class="text-sm text-gray-700">
 						{{ getPlayer(parseInt(player_id)).username }}
@@ -88,55 +91,46 @@
 			</div>
 		</div>
 
-		<div class="hand w-full text-center fixed bottom-0 z-10" :class="{'hand--hide':hideHand}">
+		<hand class="fixed bottom-0 z-10"
+		      ref="hand" :cards="hand"
+		      @submit="playSelectedCards"
+		      :needed="isJuge() || !isRoundDrawing('white-card') ? 0 : neededWhiteCards">
 			<template v-if="isRoundDrawing('white-card')">
-				<template v-if="!isJuge()">
-					<button v-if="showDrawCardsBtn" @click="playSelectedCards" :disabled="loading"
-					        class="mx-auto bg-blue-500 hover:bg-blue-700 text-white font-bold text-center
-									py-3 px-4 rounded focus:outline-none focus:shadow-outline block mb-8">
-						<template v-if="selectedCards.length > 1">Jouer ces cartes</template>
-						<template v-else>Jouer cette carte</template>
-					</button>
-					<p v-else-if="!hideHand" class="text-gray-700 mb-8">
-						Sélectionnez {{ round.black_card.blanks }}
-						<template v-if="round.black_card.blanks > 1">cartes dans l'ordre</template>
-						<template v-else>carte</template>
-						à associer avec cette carte noire.
-					</p>
-				</template>
+				<p v-if="!isJuge()" class="text-gray-700 mb-8">
+					Sélectionnez {{ neededWhiteCards }}
+					<template v-if="neededWhiteCards > 1">cartes dans l'ordre</template>
+					<template v-else>carte</template>
+					à associer avec cette carte noire.
+				</p>
 				<p v-else class="text-gray-700 mb-8">
-					Les autres joueurs sélectionnent leurs réponses.
+					Les autres joueurs sélectionnent leurs réponses...
 				</p>
 			</template>
-			<template v-else-if="round.state === 'reveal:usernames' && isHost && !loading">
-				<button @click="newRound"
+			<template v-else-if="round.state === 'reveal:usernames' && !loading">
+				<button v-if="isHost" @click="newRound"
 				        class="mx-auto bg-blue-500 hover:bg-blue-700 text-white font-bold text-center
 									py-3 px-4 rounded focus:outline-none focus:shadow-outline block mb-8">
 					Lancer la manche suivante
 				</button>
+				<p v-else class="text-gray-700 mb-8">En attente de l'hôte pour le lancement d'une nouvelle manche...</p>
 			</template>
-			<template v-else-if="round.state === 'reveal:cards' && isJuge()">
-				<p class="text-gray-700 mb-8">Révélez les cartes que les joueurs ont lancé.</p>
+			<template v-else-if="round.state === 'reveal:cards'">
+				<p v-if="isJuge()" class="text-gray-700 mb-8">Révélez les cartes que les joueurs ont lancé.</p>
+				<p v-else class="text-gray-700 mb-8">Le juge est en train de révêler les cartes...</p>
 			</template>
-			<div class="flex justify-center mb-8">
-				<Card v-for="(card,i) in hand" :key="i" :card="hideHand ? {} : card"
-				      @mouseenter.native="zoomOn = card" @mouseleave.native="zoomOn = null"
-				      @click.native="toggleCardSelection(card)" class="cursor-pointer card--small"
-				      :class="{'card--selected border-blue-500': isCardSelected(card)}"
-				      :style="{zIndex: card === zoomOn ? 20 : i+5, transform: handCardTfm(i, card)}"/>
-			</div>
-		</div>
+		</hand>
 
 	</main>
 </template>
 
 <script>
-	import Card from '../components/CardComponent'
+	//import Card from '../components/CardComponent'
 	import {mapGetters, mapState} from 'vuex'
 	import Echo from 'laravel-echo';
+	import Hand from './HandComponent';
 
 	export default {
-		components: {Card},
+		components: {Hand},
 		props: {
 			user_id: {
 				type: Number,
@@ -154,10 +148,6 @@
 				type: String,
 				required: true
 			}
-		},
-		created() {
-			for (let i = 0; i < 10; i++)
-				this.rotations.push(Math.round(Math.random() * 12) - 6)
 		},
 		async mounted() {
 			await this.$store.dispatch('loadUser', {id: this.room_id});
@@ -201,13 +191,13 @@
 					this.$store.commit('setRound', {round});
 					this.$store.commit('setHand', {cards: hand});
 					this.blackCardAngle = Math.round((Math.random() * 30) - 15);
-					this.selectedCards = [];
+					this.$refs.hand.clearSelection();
 					this.clearFakeCards();
 					this.$forceUpdate();
 				});
 
 			if (this.$store.state.round.black_card) {
-				const amount = this.$store.state.round.black_card.blanks;
+				const amount = this.neededWhiteCards;
 				this.throwFakeCards(this.$store.state.round.played_ids.length * amount);
 			}
 			this.loading = false;
@@ -215,42 +205,26 @@
 		data() {
 			return {
 				zoomOn: null,
-				selectedCards: [],
 				fakeCards: [],
 				blackCardAngle: Math.round((Math.random() * 30) - 15),
-				rotations: [],
 				loading: true,
 			}
 		},
 		methods: {
-			toggleCardSelection(card) {
-				if (this.hideHand || this.loading) return;
-
-				const i = this.selectedCards.findIndex((c) => c.id === card.id);
-				if (i >= 0) {
-					// Remove selected card
-					this.selectedCards.splice(i, 1);
-				} else if (this.selectedCards.length < this.$store.state.round.black_card.blanks) {
-					// If there is enough card
-					// Append selected card
-					this.selectedCards.push(card)
-				}
-				this.$forceUpdate();
-			},
-			playSelectedCards() {
+			playSelectedCards({cards, accept, reject}) {
 				if (this.loading) return;
-				// Check if enough cards has been selected
-				if (this.selectedCards.length !== this.$store.state.round.black_card.blanks) return;
-
 				this.loading = true;
-
-				this.$store.dispatch("playCards", {cards: this.selectedCards})
+				this.$refs.hand.hide();
+				this.$store.dispatch("playCards", {cards})
 					.then(res => {
 						if (res !== true) {
+							reject();
 							alert(res.message);
 						}
-						this.selectedCards = [];
+						this.$refs.hand.clearSelection();
 						this.loading = false;
+						this.$refs.hand.show();
+						accept();
 					})
 			},
 			throwFakeCards(amount) {
@@ -283,13 +257,6 @@
 			drawBlackCard() {
 				this.$store.dispatch("drawCard", {type: 'black', amount: 1});
 			},
-			handCardTfm(index, card) {
-				const pref = this.zoomOn === card && !this.hideHand ? 'scale(1.3) translateY(-15%)' : 'scale(1) translateY(0%)';
-				return `${pref} rotateZ(${this.rotations[index]}deg)`;
-			},
-			isCardSelected(card) {
-				return this.selectedCards.find((c) => c.id === card.id);
-			},
 			revealPlayer({id}) {
 				if (this.loading) return;
 				if (!this.$store.getters.isJuge()) return;
@@ -318,16 +285,6 @@
 			}
 		},
 		computed: {
-			hideHand: function () {
-				return this.$store.getters.hasPlayed()
-					|| !this.$store.getters.isRoundDrawing("white-card")
-					|| this.$store.getters.isJuge();
-			},
-			showDrawCardsBtn: function () {
-				return !this.hideHand
-					&& this.$store.getters.isRoundDrawing("white-card")
-					&& this.selectedCards.length === this.$store.state.round.black_card.blanks;
-			},
 			...mapState({
 				room: state => state.room,
 				round: state => state.round,
@@ -342,7 +299,8 @@
 				'isRoundDrawing',
 				'hasPlayed',
 				'isPlayerRevealed',
-				'getPlayer'
+				'getPlayer',
+				'neededWhiteCards'
 			])
 		}
 	}
@@ -352,28 +310,6 @@
 	.roomTable {
 		min-height: 20rem;
 		/*height: 50vh;*/
-	}
-
-
-	/*noinspection CssUnusedSymbol*/
-	.card--small {
-		position: relative;
-		margin: 0 -1em;
-		font-size: .825rem;
-		width: 11em;
-		height: 12.5em;
-	}
-
-
-	/*noinspection CssUnusedSymbol*/
-	.card--selected {
-		transform: scale(1) translateY(-10%);
-	}
-
-
-	/*noinspection CssUnusedSymbol*/
-	.card--zoomed {
-		transform: scale(1.25) translateY(-10%);
 	}
 
 
@@ -388,8 +324,4 @@
 		transition: transform 250ms ease-out;
 	}
 
-
-	.hand--hide {
-		transform: translateY(10em);
-	}
 </style>
