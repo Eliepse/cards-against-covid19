@@ -85,11 +85,9 @@
 			</div>
 		</div>
 
-		<hand class="fixed bottom-0 z-10"
-		      ref="hand" :cards="hand"
-		      :needed="neededWhiteCards">
+		<hand class="fixed bottom-0 z-10" ref="hand" :cards="hand" :needed="neededWhiteCards">
 			<template v-if="isRoundDrawing('white-card')">
-				<p v-if="!isJuge()" class="text-gray-700 mb-8">
+				<p v-if="!isJuge() && !hasPlayed()" class="text-gray-700 mb-8">
 					Sélectionnez {{ neededWhiteCards }}
 					<template v-if="neededWhiteCards > 1">cartes dans l'ordre</template>
 					<template v-else>carte</template>

@@ -116,7 +116,8 @@
 				return this.visible
 					&& this.needed > 0
 					&& !this.$store.getters.isJuge()
-					&& this.$store.getters.isRoundDrawing('white-card');
+					&& this.$store.getters.isRoundDrawing('white-card')
+					&& !this.$store.getters.hasPlayed();
 			},
 			hidden() {
 				return !this.shown;
