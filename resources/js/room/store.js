@@ -90,6 +90,10 @@ export default new Vuex.Store({
 					console.log("PlayerJoinedEvent", {players});
 					ctx.commit('addPlayers', {players})
 				})
+				.listen("PlayerLeftEvent", ({room, player}) => {
+					console.log("PlayerJoinedEvent", {room, player});
+					ctx.commit('setRoom', {room})
+				})
 				.listen("StateChangedEvent", ({room, round}) => {
 					console.log("StateChangedEvent", {room, round});
 					ctx.commit('setRoom', {room});

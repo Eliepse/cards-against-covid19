@@ -140,8 +140,21 @@ class RoomPolicy
 			return true;
 		}
 
-
 		return false;
+	}
+
+
+	public function leave(User $user, Room $room): bool
+	{
+		if ($room->isTerminated()) {
+			return false;
+		}
+
+		if ($room->host->is($user)) {
+			return false;
+		}
+
+		return true;
 	}
 
 

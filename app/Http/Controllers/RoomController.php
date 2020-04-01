@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 
 use App\Events\Room\PlayerJoinedEvent;
+use App\Events\Room\PlayerLeftEvent;
 use App\Http\Requests\StoreRoomRequest;
 use App\Room;
 use App\User;
@@ -80,6 +81,42 @@ class RoomController extends \Illuminate\Routing\Controller
 		$user->playedRooms()->attach($room);
 
 		return redirect()->action([self::class, 'show'], $room->url);
+	}
+
+
+	/**
+	 * @param Room $room
+	 *
+	 * @throws AuthorizationException
+	 */
+	public function leave(Room $room)
+	{
+		$this->authorize("leave", $room);
+		/** @var User $user */
+		$user = Auth::user();
+
+		if ($room->juge && $room->juge->is($user)) {
+			$room->changeToNextJuge();
+		}
+
+		$room->players_order = array_filter($room->players_order, fn($id) => $user->id !== $id);
+		$room->players()->detach($user);
+		$room->save();
+
+		$room->round->played_ids = array_filter($room->round->played_ids, fn($id) => $user->id !== $id);
+		$room->round->played_cards_ids = array_filter(
+			$room->round->played_cards_ids,
+			fn($id) => $user->id !== $id,
+			ARRAY_FILTER_USE_KEY);
+		$room->round->revealed_ids = array_filter($room->round->revealed_ids, fn($id) => $user->id !== $id);
+		$room->round->save();
+
+		$room->hands->hands = array_filter($room->hands->hands, fn($id) => $user->id !== $id, ARRAY_FILTER_USE_KEY);
+		$room->hands->save();
+
+		broadcast(new PlayerLeftEvent($room, $user));
+
+		return redirect()->action([HomeController::class, 'index']);
 	}
 
 

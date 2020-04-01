@@ -12,5 +12,12 @@
 				<button type="submit" class="text-sm uppercase text-gray-700 hover:text-gray-900">Arrêter la partie</button>
 			</form>
 		@endcan
+
+		@can("leave", $room)
+			<form method="POST" action="{{ action([\App\Http\Controllers\RoomController::class, 'leave'], $room) }}">
+				@csrf
+				<button type="submit" class="text-sm uppercase text-gray-700 hover:text-gray-900">Quitter la partie</button>
+			</form>
+		@endcan
 	@endauth
 </div>
