@@ -126,9 +126,9 @@ export default new Vuex.Store({
 				console.error(error);
 			}
 		},
-		drawCard: async function (ctx, {type, amount}) {
+		drawBlackCard: async function (ctx) {
 			try {
-				const response = await axios.post(`/api/room/${this.state.room.id}/draw`, {type, amount});
+				const response = await axios.post(`/api/room/${this.state.room.id}/draw:black-card`);
 				ctx.commit('setRound', {round: response.data.round});
 				ctx.commit('setHand', {cards: response.data.hand});
 				return true;

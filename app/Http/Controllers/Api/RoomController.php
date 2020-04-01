@@ -90,6 +90,7 @@ class RoomController
 
 		$card_stacks = $cards->chunk($room->hand_size);
 		$room->dump->addCards($cards);
+		$room->dump->save();
 
 		$room->round->state = RoomRound::STATE_DRAW_BLACK_CARD;
 		$room->round->save();
@@ -115,52 +116,32 @@ class RoomController
 	 * @return array
 	 * @throws AuthorizationException
 	 */
-	public function drawCard(DrawCardRequest $request, Room $room)
+	public function drawBlackCard(Request $request, Room $room)
 	{
-		$this->authorize('drawCard', [$room, $request->get('type')]);
-
 		$user = $request->user();
-		$round = $room->round;
-		$dump = $room->dump;
-		$hands = $room->hands;
-		$query = Card::query()
+		/** @var Card $card */
+		$card = Card::query()
 			->select(['id', 'text', 'blanks', 'contributor_id'])
 			->with(["contributor"])
 			->whereNotIn('id', $room->dump->ids)
-			->inRandomOrder();
+			->inRandomOrder()
+			->where("blanks", ">", 0)
+			->first();
 
 		// TODO: handle no more playable cards available
 		// TODO: split code to make it more readable
 
-		switch ($request->get("type")) {
-			case Card::BLACK:
-				/** @var Card $card */
-				$query->where("blanks", ">", 0);
-				$card = $query->first();
-				$dump->addCard($card)->save();
-				$round->black_card_id = $card->id;
-				$round->state = RoomRound::STATE_DRAW_WHITE_CARD;
-				$round->save();
-				$cards = [$card];
-				broadcast(new StateChangedEvent($room));
-				break;
-			case Card::WHITE:
-				$query->where("blanks", 0);
-				$cards = $query->limit($request->get("amount", 1))->get();
-				$dump->addCards($cards)->save();
-				$userHand = $hands->getForUser($user);
-				$hands->setForUser($user, [...$userHand, ...$cards->pluck("id")]);
-				$hands->save();
-				break;
-			default:
-				$cards = [];
-		}
+		$room->dump->addCard($card)->save();
+		$room->round->black_card_id = $card->id;
+		$room->round->state = RoomRound::STATE_DRAW_WHITE_CARD;
+		$room->round->save();
 
+		broadcast(new StateChangedEvent($room));
 
 		return [
-			"round" => $round,
-			"hand" => Card::fetchHandCardsList($hands->getForUser($user)),
-			"cards" => $cards,
+			"round" => $room->round,
+			"hand" => Card::fetchHandCardsList($room->hands->getForUser($user)),
+			"cards" => [$card],
 		];
 	}
 
@@ -188,16 +169,6 @@ class RoomController
 				"needed_amount" => $needed,
 			]);
 			throw new AuthorizationException("You should play the right amount of cards ($needed for this round).");
-		}
-
-		// Check if cards have been dumped
-		if (!empty(array_intersect($room->dump->ids, $card_ids))) {
-			// TODO: this control seem to not work according the fact that hands are added to dump when created
-			Log::debug("You cannot play cards that have already been dumped.", [
-				"card_ids" => $card_ids,
-				"cards_in_dump" => array_intersect($room->dump->ids, $card_ids),
-			]);
-			throw new AuthorizationException("You cannot play cards that have already been dumped.");
 		}
 
 		// Check if cards are in hand
@@ -299,11 +270,13 @@ class RoomController
 
 		foreach ($room->players as $player) {
 			$missingCards = $room->hand_size - count($room->hands->getForUser($player));
-			$cards = $newCards->splice(0, $missingCards)->pluck("id")->toArray();
-			$room->hands->addToUser($player, $cards);
+			$cards = $newCards->splice(0, $missingCards);
+			$room->hands->addToUser($player, $cards->pluck("id")->toArray());
+			$room->dump->addCards($cards);
 		}
 
 		$room->hands->save();
+		$room->dump->save();
 
 		foreach ($room->players as $player) {
 			broadcast(new NewRoundEvent($room, $player));

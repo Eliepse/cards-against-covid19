@@ -21,7 +21,7 @@ Route::get('/user', function (Request $request) {
 
 Route::get('/room/{room}', [RoomController::class, 'show']);
 Route::post('/room/{room}/start', [RoomController::class, 'startPlaying']);
-Route::post('/room/{room}/draw', [RoomController::class, 'drawCard']);
+Route::post('/room/{room}/draw:black-card', [RoomController::class, 'drawBlackCard']);
 Route::post('/room/{room}/play:white-cards', [RoomController::class, 'playWhiteCards']);
 Route::post('/room/{room}/reveal:player', [RoomController::class, 'revealPlayer']);
 Route::post('/room/{room}/round', [RoomController::class, 'newRound']);

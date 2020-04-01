@@ -196,7 +196,7 @@
 					})
 			},
 			drawBlackCard() {
-				this.$store.dispatch("drawCard", {type: 'black', amount: 1});
+				this.$store.dispatch("drawBlackCard");
 			},
 			revealPlayer({id}) {
 				if (this.loading) return;
