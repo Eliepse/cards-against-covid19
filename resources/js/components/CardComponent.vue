@@ -1,6 +1,6 @@
 <template>
-	<div :class="classes"
-	     class="card inline-block m-4 border border-gray-300 rounded-lg flex flex-col justify-between shadow-lg p-5 text-lg text-left">
+	<div class="card inline-block m-4 border border-gray-300 rounded-lg flex flex-col justify-between shadow-lg text-lg text-left"
+	     :class="[...backgroundClasses, ...sizeClasses]">
 		<p :class="{'text-gray-500':placeholder && !card.text}">
 			{{ placeholder && !card.text ? placeholder : card.text }}
 		</p>
@@ -28,8 +28,12 @@
 				required: false,
 				default: null
 			},
+			size: {
+				type: String,
+				required: false,
+				default() { return 'medium'; }
+			},
 			editable: false,
-			small: false
 		},
 		data() {
 			return {
@@ -40,11 +44,26 @@
 			isBlack: function () {
 				return new RegExp(/_{2,}/gm).test(this.card.text)
 			},
-			classes() {
+			backgroundClasses() {
 				let classes = [];
-				classes.push(this.isBlack ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-700');
-				if (this.small) classes.push('card--small');
+				if (this.isBlack) {
+					classes.push('bg-gray-900');
+					classes.push('text-gray-100');
+				} else {
+					classes.push('bg-white');
+					classes.push('text-gray-700');
+				}
 				return classes;
+			},
+			sizeClasses() {
+				switch (this.size) {
+					case 'xs':
+						return ['card--xsmall'];
+					case 'sm':
+						return ['card--small'];
+					default:
+						return [];
+				}
 			}
 		},
 		methods: {
@@ -57,6 +76,8 @@
 
 <style scoped>
 	.card {
+		position: relative;
+		padding: 1.25rem;
 		width: 11em;
 		height: 12.5em;
 		user-select: none;
@@ -65,11 +86,21 @@
 
 
 	/*noinspection CssUnusedSymbol*/
-	.card--small {
-		position: relative;
-		margin: 0 -1em;
+	.card--xsmall {
+		margin: 0 -.825em;
+		padding: .825rem;
 		font-size: .825rem;
-		width: 11em;
-		height: 12.5em;
+		width: 9em;
+		height: 10.5em;
+	}
+
+
+	/*noinspection CssUnusedSymbol*/
+	.card--small {
+		margin: 0 -.825em;
+		padding: 1rem;
+		font-size: .825rem;
+		width: 10em;
+		height: 11.5em;
 	}
 </style>

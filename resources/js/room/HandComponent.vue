@@ -13,7 +13,7 @@
 			</button>
 		</div>
 		<div class="hand-cards flex justify-center">
-			<Card v-for="(card, i) in cards" :key="i" :card="shown ? card : {}" :small="true"
+			<Card v-for="(card, i) in cards" :key="i" :card="shown ? card : {}" size="xs"
 			      :class="{'card--selected': isCardSelected(card), 'cursor-pointer':shown}"
 			      :style="cardStyles(card, i)"
 			      @mouseenter.native="zoomedCard = card"

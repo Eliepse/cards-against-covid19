@@ -33,11 +33,8 @@
 
 		<div v-if="isRoomPlaying && isRoundDrawing()" class="h-full w-full flex items-center overflow-hidden pb-20">
 			<div class="fixed top-0 left-0 w-0 h-0" style="z-index: 2">
-				<card v-for="(fCard,j) in fakeCards" :card='{"text":""}' :key="j" :small="true" class="card--fake"
-				      :style="{
-							top: fCard.x + 'px', left: fCard.y + 'px',
-							transform: 'translate(-50%,-50%) rotateZ('+ fCard.r +'deg)'
-						}"/>
+				<card v-for="(fCard,j) in fakeCards" :card='{"text":""}' :key="j" size="xs" class="card--fake"
+				      :style="{top: fCard.x + 'px', left: fCard.y + 'px',transform: 'translate(-50%,-50%) rotateZ('+ fCard.r +'deg)'}"/>
 			</div>
 
 			<div class="roomTable container m-auto flex justify-center items-center" style="z-index: 1" ref="table">
@@ -67,20 +64,17 @@
 
 		<div v-if="isRoomPlaying && round.state.startsWith('reveal:')" class="h-full w-full flex flex-col items-center">
 			<div class="flex justify-center items-center mx-16 mt-8 mb-10">
-				<card :card="round.black_card" :style="{transform:'rotateZ('+ blackCardAngle +'deg)'}" :small="true"/>
+				<card :card="round.black_card" :style="{transform:'rotateZ('+ blackCardAngle +'deg)'}" size="xs"/>
 			</div>
 			<div class="flex-1 flex items-center justify-center">
 				<div v-for="(cards, player_id) in round.played_cards" :key="parseInt(player_id)"
 				     class="inline-block mb-6 mx-6">
 					<div class="flex mb-4">
-						<card v-for="(card,j) in cards" :key="j" :card="isPlayerRevealed({id:parseInt(player_id)}) ? card : {}"
+						<card v-for="(card,j) in cards" :key="j" :card="getRevealedCard(card, parseInt(player_id))"
 						      :class="{'cursor-pointer': isJuge() && !isPlayerRevealed({id:parseInt(player_id)})}"
 						      @click.native="revealPlayer({id:parseInt(player_id)})"
-						      :small="true" :style="{transform:'rotateZ('+ ((j * 8)-4) +'deg)', height: '10em', width:'9em'}"/>
+						      size="sm" :style="{transform:'rotateZ('+ ((j * 8)-4) +'deg)'}"/>
 					</div>
-					<p v-if="round.state === 'reveal:usernames'" class="text-sm text-gray-700">
-						{{ getPlayer(parseInt(player_id)).username }}
-					</p>
 				</div>
 			</div>
 		</div>
@@ -221,6 +215,17 @@
 						}
 						this.loading = false
 					})
+			},
+			getRevealedCard(card, player_id) {
+				if (!this.$store.getters.isPlayerRevealed({id: player_id}))
+					return {};
+
+				return {
+					text: card.text,
+					contributor: {
+						username: this.$store.getters.getPlayer(player_id).username
+					}
+				}
 			}
 		},
 		computed: {

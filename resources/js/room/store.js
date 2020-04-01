@@ -94,13 +94,13 @@ export default new Vuex.Store({
 					console.log("PlayerJoinedEvent", {room, player});
 					ctx.commit('setRoom', {room})
 				})
-				.listen("StateChangedEvent", ({room, round}) => {
-					console.log("StateChangedEvent", {room, round});
+				.listen("CardsPlayedEvent", ({room, round, amount}) => {
+					console.log("CardsPlayedEvent", {room, round, amount});
 					ctx.commit('setRoom', {room});
 					ctx.commit('setRound', {round});
 				})
-				.listen("CardsPlayedEvent", ({room, round, amount}) => {
-					console.log("CardsPlayedEvent", {room, round, amount});
+				.listen("StateChangedEvent", ({room, round}) => {
+					console.log("StateChangedEvent", {room, round});
 					ctx.commit('setRoom', {room});
 					ctx.commit('setRound', {round});
 				})
