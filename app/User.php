@@ -20,6 +20,7 @@ use Laravel\Passport\HasApiTokens;
  * @property Collection $cards
  * @property Collection $hostedRooms
  * @property Collection $playedRooms
+ * @property \stdClass $pivot
  */
 class User extends Authenticatable
 {

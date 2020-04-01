@@ -87,6 +87,7 @@ class RoomController extends \Illuminate\Routing\Controller
 	/**
 	 * @param Room $room
 	 *
+	 * @return RedirectResponse
 	 * @throws AuthorizationException
 	 */
 	public function leave(Room $room)

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Cache\RoomRound;
 use App\Card;
+use App\Events\PlayerWonRoundEvent;
 use App\Events\Room\CardsPlayedEvent;
 use App\Events\Room\NewRoundEvent;
 use App\Events\Room\PlayerRevealedEvent;
@@ -11,6 +12,7 @@ use App\Events\Room\StateChangedEvent;
 use App\Http\Requests\DrawCardRequest;
 use App\Http\Requests\PlayWhiteCardsRequest;
 use App\Http\Requests\RevealPlayerRequest;
+use App\Http\Requests\SelectRoundWinnerRequest;
 use App\Room;
 use App\User;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -227,7 +229,7 @@ class RoomController
 
 		$room->round->revealed_ids[] = $player->id;
 		if (count($room->round->revealed_ids) === $room->players->count() - 1) {
-			$room->round->state = RoomRound::STATE_REVEAL_USERNAMES;
+			$room->round->state = RoomRound::STATE_SELECT_WINNER;
 		}
 		$room->round->save();
 
@@ -259,7 +261,6 @@ class RoomController
 		$totalHand = collect($room->hands->hands)->flatten();
 		$expectedCount = $room->hand_size * $room->players->count();
 
-
 		$newCards = Card::query()
 			->select(["id"])
 			->whereNotIn("id", $room->dump->ids)
@@ -286,6 +287,45 @@ class RoomController
 			"round" => $room->round,
 			"room" => $room,
 			"hand" => Card::fetchHandCardsList($room->hands->getForUser($request->user())),
+		];
+	}
+
+
+	/**
+	 * @param SelectRoundWinnerRequest $request
+	 * @param Room $room
+	 *
+	 * @return array
+	 * @throws AuthorizationException
+	 */
+	public function selectRoundWinner(SelectRoundWinnerRequest $request, Room $room)
+	{
+		$this->authorize("selectWinner", $room);
+		$user = $request->user();
+		/** @var User $player */
+		$player = $room->players->find($request->get('player_id'));
+
+		if (!$player) {
+			throw new AuthorizationException("You cannot choose a player that is not part of this room.");
+		}
+
+		if ($room->juge->is($player)) {
+			throw new AuthorizationException("You cannot choose yourself as a winner.");
+		}
+
+		$room->players()->updateExistingPivot($player, ["score" => $player->pivot->score + 1], true);
+
+		$room->round->winner_id = $player->id;
+		$room->round->state = RoomRound::STATE_COMPLETED;
+		$room->round->save();
+
+		broadcast(new PlayerWonRoundEvent($room, $player));
+		broadcast(new StateChangedEvent($room));
+
+		return [
+			"room" => $room,
+			"round" => $room->round,
+			"player" => $player,
 		];
 	}
 }

@@ -31,53 +31,68 @@
 			</btn>
 		</div>
 
-		<div v-if="isRoomPlaying && isRoundDrawing()" class="h-full w-full flex items-center overflow-hidden pb-20">
-			<div class="fixed top-0 left-0 w-0 h-0" style="z-index: 2">
-				<card v-for="(fCard,j) in fakeCards" :card='{"text":""}' :key="j" size="xs" class="card--fake"
-				      :style="{top: fCard.x + 'px', left: fCard.y + 'px',transform: 'translate(-50%,-50%) rotateZ('+ fCard.r +'deg)'}"/>
+		<template v-if="isRoomPlaying">
+			<div v-if="isRoundDrawing()" class="h-full w-full flex items-center overflow-hidden pb-20">
+				<div class="fixed top-0 left-0 w-0 h-0" style="z-index: 2">
+					<card v-for="(fCard,j) in fakeCards" :card='{"text":""}' :key="j" size="xs" class="card--fake"
+					      :style="{top: fCard.x + 'px', left: fCard.y + 'px',transform: 'translate(-50%,-50%) rotateZ('+ fCard.r +'deg)'}"/>
+				</div>
+				<div class="roomTable container m-auto flex justify-center items-center" style="z-index: 1" ref="table">
+					<template v-if="isRoundDrawing('white-card')">
+						<card :card="round.black_card" class="my-0 mx-0" :style="{transform:'rotateZ('+ blackCardAngle +'deg)'}"/>
+					</template>
+					<template v-else-if="isRoundDrawing('black-card')">
+						<div class="max-w-xs mx-auto text-center">
+							<template v-if="isJuge()">
+								<p class="text-gray-700 mb-8">
+									Étant le maître du jeu de cette manche,
+									c'est à vous de piocher la carte noire.
+								</p>
+								<btn @click.native="drawBlackCard" class="bt-4" color="black" :disabled="loading">
+									Piocher une carte noire
+								</btn>
+							</template>
+							<template v-else>
+								<p class="text-gray-700">
+									Le maître du jeu va bientôt piocher une carte...
+								</p>
+							</template>
+						</div>
+					</template>
+				</div>
 			</div>
-
-			<div class="roomTable container m-auto flex justify-center items-center" style="z-index: 1" ref="table">
-				<template v-if="isRoundDrawing('white-card')">
-					<card :card="round.black_card" class="my-0 mx-0" :style="{transform:'rotateZ('+ blackCardAngle +'deg)'}"/>
-				</template>
-				<template v-else-if="isRoundDrawing('black-card')">
-					<div class="max-w-xs mx-auto text-center">
-						<template v-if="isJuge()">
-							<p class="text-gray-700 mb-8">
-								Étant le maître du jeu de cette manche,
-								c'est à vous de piocher la carte noire.
-							</p>
-							<btn @click.native="drawBlackCard" class="bt-4" color="black" :disabled="loading">
-								Piocher une carte noire
-							</btn>
-						</template>
-						<template v-else>
-							<p class="text-gray-700">
-								Le maître du jeu va bientôt piocher une carte...
-							</p>
-						</template>
-					</div>
-				</template>
-			</div>
-		</div>
-
-		<div v-if="isRoomPlaying && round.state.startsWith('reveal:')" class="h-full w-full flex flex-col items-center">
-			<div class="flex justify-center items-center mx-16 mt-8 mb-10">
-				<card :card="round.black_card" :style="{transform:'rotateZ('+ blackCardAngle +'deg)'}" size="xs"/>
-			</div>
-			<div class="flex-1 flex items-center justify-center">
-				<div v-for="(cards, player_id) in round.played_cards" :key="parseInt(player_id)"
-				     class="inline-block mb-6 mx-6">
-					<div class="flex mb-4">
-						<card v-for="(card,j) in cards" :key="j" :card="getRevealedCard(card, parseInt(player_id))"
-						      :class="{'cursor-pointer': isJuge() && !isPlayerRevealed({id:parseInt(player_id)})}"
-						      @click.native="revealPlayer({id:parseInt(player_id)})"
-						      size="sm" :style="{transform:'rotateZ('+ ((j * 8)-4) +'deg)'}"/>
+			<div v-else-if="(round.state.startsWith('reveal:') || round.state === 'select:winner')" class="h-full w-full flex flex-col items-center">
+				<div class="flex justify-center items-center mx-16 mt-8 mb-10">
+					<card :card="round.black_card" :style="{transform:'rotateZ('+ blackCardAngle +'deg)'}" size="xs"/>
+				</div>
+				<div class="flex-1 flex items-center justify-center">
+					<div v-for="(cards, player_id) in round.played_cards" :key="parseInt(player_id)"
+					     class="inline-block mb-6 mx-6">
+						<div v-if="round.state.startsWith('reveal:')" class="flex mb-4">
+							<card v-for="(card,j) in cards" :key="j" :card="getRevealedCard(card, parseInt(player_id))"
+							      :class="{'cursor-pointer': isJuge() && !isPlayerRevealed({id:parseInt(player_id)})}"
+							      @click.native="revealPlayer({id:parseInt(player_id)})"
+							      size="sm" :style="{transform:'rotateZ('+ ((j * 8)-4) +'deg)'}"/>
+						</div>
+						<div v-else class="flex mb-4" @mouseenter="hoveredPlayer = player_id" @mouseleave="hoveredPlayer = null">
+							<card v-for="(card,j) in cards" :key="j" :card="getRevealedCard(card, parseInt(player_id))"
+							      :class="{'cursor-pointer': isJuge(), 'border-2 border-blue-500':hoveredPlayer === player_id}"
+							      @click.native="selectWinner({player_id:parseInt(player_id)})"
+							      size="sm" :style="{transform:'rotateZ('+ ((j * 8)-4) +'deg)'}"/>
+						</div>
 					</div>
 				</div>
 			</div>
-		</div>
+			<div v-else-if="round.state === 'completed'" class="h-full w-full flex items-center overflow-hidden pb-20">
+				<div class="roomTable container m-auto flex justify-center items-center" style="z-index: 1">
+					<div class="max-w-xs mx-auto text-center">
+						<p class="text-gray-700">
+							Le gagnant de cette manche est <strong>{{ round.winner_id ? getPlayer(round.winner_id).username : '' }} !</strong>
+						</p>
+					</div>
+				</div>
+			</div>
+		</template>
 
 		<hand class="fixed bottom-0 z-10" ref="hand" :cards="hand" :needed="neededWhiteCards">
 			<template v-if="isRoundDrawing('white-card')">
@@ -91,7 +106,7 @@
 					Les autres joueurs sélectionnent leurs réponses...
 				</p>
 			</template>
-			<template v-else-if="round.state === 'reveal:usernames' && !loading">
+			<template v-else-if="round.state === 'completed' && !loading">
 				<btn v-if="isHost" @click.native="newRound" class="mb-8" :disabled="loading">
 					Lancer la manche suivante
 				</btn>
@@ -100,6 +115,10 @@
 			<template v-else-if="round.state === 'reveal:cards'">
 				<p v-if="isJuge()" class="text-gray-700 mb-8">Révélez les cartes que les joueurs ont lancé.</p>
 				<p v-else class="text-gray-700 mb-8">Le juge est en train de révêler les cartes...</p>
+			</template>
+			<template v-else-if="round.state === 'select:winner'">
+				<p v-if="isJuge()" class="text-gray-700 mb-8">Choisissez quel joueur gagne cette manche.</p>
+				<p v-else class="text-gray-700 mb-8">Le juge est en train de choisir le gagnant...</p>
 			</template>
 		</hand>
 
@@ -153,7 +172,7 @@
 		},
 		data() {
 			return {
-				zoomOn: null,
+				hoveredPlayer: null,
 				fakeCards: [],
 				blackCardAngle: Math.round((Math.random() * 30) - 15),
 				loading: true,
@@ -226,13 +245,28 @@
 						username: this.$store.getters.getPlayer(player_id).username
 					}
 				}
+			},
+			selectWinner({player_id}) {
+				if (this.loading) return;
+				if (!this.$store.getters.isJuge()) return;
+
+				this.loading = true;
+
+				this.$store.dispatch("selectWinner", {player_id})
+					.then((res) => {
+						if (res !== true) {
+							alert(res.message);
+						}
+						this.loading = false
+					})
 			}
 		},
 		computed: {
 			...mapState({
 				room: state => state.room,
 				round: state => state.round,
-				hand: state => state.hand
+				hand: state => state.hand,
+				winner: state => state.winner || {}
 			}),
 			...mapGetters([
 				'players',

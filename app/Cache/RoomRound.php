@@ -14,7 +14,8 @@ class RoomRound extends CacheModel
 	public const STATE_DRAW_BLACK_CARD = "draw:black-card";
 	public const STATE_DRAW_WHITE_CARD = "draw:white-card";
 	public const STATE_REVEAL_CARDS = "reveal:cards";
-	public const STATE_REVEAL_USERNAMES = "reveal:usernames";
+	public const STATE_SELECT_WINNER = "select:winner";
+	public const STATE_COMPLETED = "completed";
 
 	/**
 	 * The current state of this round.
@@ -53,6 +54,8 @@ class RoomRound extends CacheModel
 	 */
 	public array $revealed_ids = [];
 
+	public ?int $winner_id;
+
 	private Room $room;
 	private ?Card $black_card = null;
 	private Collection $white_cards;
@@ -74,6 +77,7 @@ class RoomRound extends CacheModel
 		$this->played_cards_ids = $attributes["played_cards_ids"] ?? [];
 		$this->played_ids = $attributes["played_ids"] ?? [];
 		$this->revealed_ids = $attributes["revealed_ids"] ?? [];
+		$this->winner_id = $attributes["winner_id"] ?? null;
 		return $this;
 	}
 
@@ -161,6 +165,7 @@ class RoomRound extends CacheModel
 			"played_cards_ids" => $this->played_cards_ids,
 			"played_cards" => $this->getWhiteCards(),
 			"revealed_ids" => $this->revealed_ids,
+			"winner_id" => $this->winner_id,
 		];
 	}
 

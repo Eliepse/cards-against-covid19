@@ -229,4 +229,14 @@ class RoomPolicy
 	{
 		return $room->host->is($user);
 	}
+
+
+	public function selectWinner(User $user, Room $room): bool
+	{
+		if (!$room->isPlaying()) return false;
+		if ($room->round->state !== RoomRound::STATE_SELECT_WINNER) return false;
+		if (!$room->juge || $room->juge->isNot($user)) return false;
+
+		return true;
+	}
 }

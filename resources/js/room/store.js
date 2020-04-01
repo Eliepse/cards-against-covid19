@@ -11,7 +11,7 @@ export default new Vuex.Store({
 		room: {},
 		round: {},
 		hand: [],
-		connectedPlayers: []
+		connectedPlayers: [],
 	},
 	getters: {
 		players: state => {
@@ -108,6 +108,11 @@ export default new Vuex.Store({
 					console.log("PlayerRevealedEvent", {room, round, player});
 					ctx.commit('setRoom', {room});
 					ctx.commit('setRound', {round});
+				})
+				.listen("PlayerWonRoundEvent", ({room, round, player}) => {
+					console.log("PlayerWonRoundEvent", {room, round, player});
+					ctx.commit('setRoom', {room});
+					ctx.commit('setRound', {round});
 				});
 		},
 		loadRoom: async function (ctx, {id}) {
@@ -189,6 +194,18 @@ export default new Vuex.Store({
 		newRound: async function (ctx) {
 			try {
 				const response = await axios.post(`/api/room/${this.state.room.id}/round`);
+				ctx.commit('setRoom', {room: response.data.room});
+				ctx.commit('setRound', {round: response.data.round});
+				return true;
+			} catch (error) {
+				console.error(error.response.data.message);
+				return {"message": error.response.data.message};
+			}
+		},
+		selectWinner: async function (ctx, {player_id}) {
+			console.log({player_id});
+			try {
+				const response = await axios.post(`/api/room/${this.state.room.id}/winner`, {player_id});
 				ctx.commit('setRoom', {room: response.data.room});
 				ctx.commit('setRound', {round: response.data.round});
 				return true;

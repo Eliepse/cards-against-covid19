@@ -25,3 +25,4 @@ Route::post('/room/{room}/draw:black-card', [RoomController::class, 'drawBlackCa
 Route::post('/room/{room}/play:white-cards', [RoomController::class, 'playWhiteCards']);
 Route::post('/room/{room}/reveal:player', [RoomController::class, 'revealPlayer']);
 Route::post('/room/{room}/round', [RoomController::class, 'newRound']);
+Route::post('/room/{room}/winner', [RoomController::class, 'selectRoundWinner']);
