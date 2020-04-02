@@ -1,6 +1,7 @@
 <template>
 	<main class="h-screen pt-12 w-full relative">
 
+		<!-- Leaderboard -->
 		<ul v-if="isRoomPlaying" class="text-sm text-gray-800 absolute top-0 left-0 mt-16 ml-4 font-mono">
 			<li v-for="player in players.sort((a, b) => b.pivot.score - a.pivot.score)" class="mb-2"
 			    :class="{'text-gray-500': !player.connected}">
@@ -13,6 +14,13 @@
 			</li>
 		</ul>
 
+		<!-- Fake cards -->
+		<transition-group tag="div" class="fixed top-0 left-0 w-0 h-0" style="z-index: 2" :css="false"
+		                  @before-enter="fakeCardBeforeEnter" @enter="fakeCardEnter" @leave="fakeCardLeave">
+			<card v-for="j in playedCardsCount" :card='{}' :key="j" size="xs" style="position: fixed; z-index: 3;"/>
+		</transition-group>
+
+		<!-- Waiting screen -->
 		<div v-if="isRoomWaiting" class="h-full w-full flex flex-col justify-center overflow-hidden pb-20">
 			<div class="w-full max-w-xs mx-auto bg-white rounded-lg border border-gray-300 shadow-xl text-center p-8">
 				<h1 class="text-lg text-blue-700">En attente de joueurs</h1>
@@ -31,12 +39,10 @@
 			</btn>
 		</div>
 
+		<!-- Playing screen -->
 		<template v-if="isRoomPlaying">
 			<div v-if="isRoundDrawing()" class="h-full w-full flex items-center overflow-hidden pb-20">
-				<div class="fixed top-0 left-0 w-0 h-0" style="z-index: 2">
-					<card v-for="(fCard,j) in fakeCards" :card='{"text":""}' :key="j" size="xs" class="card--fake"
-					      :style="{top: fCard.x + 'px', left: fCard.y + 'px',transform: 'translate(-50%,-50%) rotateZ('+ fCard.r +'deg)'}"/>
-				</div>
+				<!-- Table (where the black card is) -->
 				<div class="roomTable container m-auto flex justify-center items-center" style="z-index: 1" ref="table">
 					<template v-if="isRoundDrawing('white-card')">
 						<card :card="round.black_card" class="my-0 mx-0" :style="{transform:'rotateZ('+ blackCardAngle +'deg)'}"/>
@@ -87,7 +93,8 @@
 				<div class="roomTable container m-auto flex justify-center items-center" style="z-index: 1">
 					<div class="max-w-xs mx-auto text-center">
 						<p class="text-gray-700">
-							Le gagnant de cette manche est <strong>{{ round.winner_id ? getPlayer(round.winner_id).username : '' }} !</strong>
+							Le gagnant de cette manche est
+							<strong>{{ round.winner_id ? getPlayer(round.winner_id).username : '' }} !</strong>
 						</p>
 					</div>
 				</div>
@@ -128,6 +135,7 @@
 <script>
 	import {mapGetters, mapState} from 'vuex'
 	import Hand from './HandComponent';
+	import Velocity from "velocity-animate"
 
 	export default {
 		components: {Hand},
@@ -149,9 +157,11 @@
 				required: true
 			}
 		},
+		beforeMount() {
+			window.winOrigin = {x: window.innerWidth / 2, y: window.innerHeight / 2};
+		},
 		async mounted() {
-			await this.$store.dispatch('initialization', {room_id: this.room_id, public_channel: this.public_channel})
-				.then(channel => {channel.listen("CardsPlayedEvent", ({amount}) => {this.throwFakeCards(amount);})});
+			await this.$store.dispatch('initialization', {room_id: this.room_id, public_channel: this.public_channel});
 
 			echo.private(this.private_channel)
 				.listen("NewRoundEvent", ({room, round, hand}) => {
@@ -161,39 +171,43 @@
 					this.$store.commit('setHand', {cards: hand});
 					this.blackCardAngle = Math.round((Math.random() * 30) - 15);
 					this.$refs.hand.clearSelection();
-					this.clearFakeCards();
 					this.$forceUpdate();
 				});
 
-			if (this.$store.state.round.black_card) {
-				this.throwFakeCards(this.$store.state.round.played_ids.length * this.neededWhiteCards);
-			}
 			this.loading = false;
 		},
 		data() {
 			return {
 				hoveredPlayer: null,
-				fakeCards: [],
 				blackCardAngle: Math.round((Math.random() * 30) - 15),
 				loading: true,
 			}
 		},
 		methods: {
-			throwFakeCards(amount) {
-				const o = {x: this.$el.offsetHeight / 2, y: this.$el.offsetWidth / 2};
-
-				for (let i = 0; i < amount; i++) {
-					const radius = 175 + (Math.random() * 200);
-					const angle = (Math.PI * 2) * Math.random();
-					this.fakeCards.push({
-						x: o.x + (Math.cos(angle) * radius),
-						y: o.y + (Math.sin(angle) * radius),
-						r: Math.round(Math.random() * 360)
-					});
-				}
+			fakeCardBeforeEnter(el) {
+				const angle = (Math.PI * 2) * Math.random();
+				const radius = Math.sqrt(Math.pow(winOrigin.x, 2) + Math.pow(winOrigin.y, 2));
+				el.style.top = (winOrigin.x + (Math.cos(angle) * radius)) + 'px';
+				el.style.left = (winOrigin.y + (Math.sin(angle) * radius)) + 'px';
+				el.style.transform = `translate(-50%,-50%) rotateZ(0deg)`;
 			},
-			clearFakeCards() {
-				this.fakeCards = [];
+			fakeCardEnter(el, done) {
+				const radius = 100 + (Math.random() * 100);
+				const angle = (Math.PI * 2) * Math.random();
+				Velocity(el, {
+					left: (winOrigin.x + (Math.cos(angle) * radius)) + 'px',
+					top: (winOrigin.y + (Math.sin(angle) * radius)) + 'px',
+					rotateZ: (Math.random() * 360) + 'deg'
+				}, {
+					easing: "ease-out",
+					delay: Math.floor(Math.random() * 250),
+					duration: 500,
+					complete: done
+				});
+			},
+			fakeCardLeave(el, done) {
+				const duration = 200 + Math.floor(Math.random() * 150);
+				Velocity(el, {opacity: 0}, {duration, complete: done});
 			},
 			startRoom() {
 				if (this.loading) return;
@@ -278,7 +292,8 @@
 				'hasPlayed',
 				'isPlayerRevealed',
 				'getPlayer',
-				'neededWhiteCards'
+				'neededWhiteCards',
+				'playedCardsCount'
 			])
 		}
 	}
@@ -288,12 +303,6 @@
 	.roomTable {
 		min-height: 20rem;
 		/*height: 50vh;*/
-	}
-
-
-	.card--fake {
-		position: fixed;
-		z-index: 3;
 	}
 
 

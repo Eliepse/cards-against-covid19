@@ -53,7 +53,12 @@ export default new Vuex.Store({
 		neededWhiteCards: function (state) {
 			if (!state.round.black_card) return 0;
 			return state.round.black_card.blanks;
-		}
+		},
+		playedCardsCount: state => {
+			if (!state.round.played_ids) return 0;
+			if (state.round.state !== "draw:white-card") return 0;
+			return state.round.played_ids.length * state.round.black_card.blanks;
+		},
 	},
 	mutations: {
 		setUser: (state, {user}) => {state.user = user},
