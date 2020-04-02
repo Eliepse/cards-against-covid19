@@ -49,7 +49,11 @@ export default new Vuex.Store({
 			return state.round.played_ids.includes(player ? player.id : state.user.id);
 		},
 		isPlayerRevealed: state => ({id}) => state.round.revealed_ids.includes(id),
-		getPlayer: state => id => state.room.players.find(({id: pid}) => pid === id),
+		getPlayer: state => id => {
+			const player = state.room.players.find(({id: pid}) => pid === id);
+			player.connected = state.connectedPlayers.find((cp) => cp.id === player.id) !== undefined;
+			return player;
+		},
 		neededWhiteCards: function (state) {
 			if (!state.round.black_card) return 0;
 			return state.round.black_card.blanks;

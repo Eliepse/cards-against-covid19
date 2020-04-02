@@ -3,14 +3,14 @@
 
 		<!-- Leaderboard -->
 		<ul v-if="isRoomPlaying" class="text-sm text-gray-800 absolute top-0 left-0 mt-16 ml-4 font-mono">
-			<li v-for="player in players.sort((a, b) => b.pivot.score - a.pivot.score)" class="mb-2"
-			    :class="{'text-gray-500': !player.connected}">
-				<template v-if="player.connected">
-					<span v-if="isJuge(player)">&raquo;&nbsp;</span>
+			<li v-for="id in room.players_order" class="mb-2"
+			    :class="{'text-gray-500': !getPlayer(id).connected}">
+				<template v-if="getPlayer(id).connected">
+					<span v-if="isJuge(getPlayer(id))">&raquo;&nbsp;</span>
 					<span v-else>&dash;&nbsp;</span>
 				</template>
 				<span v-else>&times;&nbsp;</span>
-				{{ player.username }}&nbsp;: {{ player.pivot.score }}
+				{{ getPlayer(id).username }}
 			</li>
 		</ul>
 
