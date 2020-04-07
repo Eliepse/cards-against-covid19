@@ -227,7 +227,7 @@ class RoomPolicy
 
 	public function terminate(User $user, Room $room): bool
 	{
-		return $room->host->is($user);
+		return $room->host->is($user) && !$room->isTerminated();
 	}
 
 
