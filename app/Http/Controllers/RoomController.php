@@ -73,7 +73,7 @@ class RoomController extends \Illuminate\Routing\Controller
 		$user = Auth::user();
 		$room = new Room([
 			"max_players" => $request->get('max_players', 8),
-			"hand_size" => 5,
+			"hand_size" => 6,
 		]);
 		$room->generateUrl();
 
