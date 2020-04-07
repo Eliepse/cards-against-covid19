@@ -68,35 +68,39 @@
 						</template>
 					</div>
 				</div>
-				<div v-else-if="(round.state.startsWith('reveal:') || round.state === 'select:winner')" class="h-full w-full flex flex-col items-center">
-					<div class="flex justify-center items-center mx-16 mt-8 mb-10">
-						<card :card="round.black_card" :style="{transform:'rotateZ('+ blackCardAngle +'deg)'}" size="xs"/>
-					</div>
-					<div class="flex-1 flex items-center justify-center">
-						<div v-for="(cards, player_id) in round.played_cards" :key="parseInt(player_id)"
-						     class="inline-block mb-6 mx-6">
-							<div v-if="round.state.startsWith('reveal:')" class="flex mb-4">
-								<card v-for="(card,j) in cards" :key="j" :card="getRevealedCard(card, parseInt(player_id))"
-								      :class="{'cursor-pointer': isJuge() && !isPlayerRevealed({id:parseInt(player_id)})}"
-								      @click.native="revealPlayer({id:parseInt(player_id)})"
-								      size="sm" :style="{transform:'rotateZ('+ ((j * 8)-4) +'deg)'}"/>
-							</div>
-							<div v-else class="flex mb-4" @mouseenter="hoveredPlayer = player_id" @mouseleave="hoveredPlayer = null">
-								<card v-for="(card,j) in cards" :key="j" :card="getRevealedCard(card, parseInt(player_id))"
-								      :class="{'cursor-pointer': isJuge(), 'border-2 border-blue-500':hoveredPlayer === player_id}"
-								      @click.native="selectWinner({player_id:parseInt(player_id)})"
-								      size="sm" :style="{transform:'rotateZ('+ ((j * 8)-4) +'deg)'}"/>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div v-else-if="round.state === 'completed'" class="h-full w-full flex items-center overflow-hidden pb-20">
-					<div class="roomTable container m-auto flex justify-center items-center" style="z-index: 1">
-						<div class="max-w-xs mx-auto text-center">
-							<p class="text-gray-700">
+				<div v-else class="h-full w-full flex items-center overflow-hidden pb-20">
+					<div class="roomTable container m-auto flex flex-col justify-center items-center" style="z-index: 1">
+						<div class="flex justify-center items-center mx-16 mt-8 mb-10">
+							<p class="text-gray-700" v-if="round.state === 'completed'">
 								Le gagnant de cette manche est
 								<strong>{{ round.winner_id ? getPlayer(round.winner_id).username : '' }} !</strong>
 							</p>
+							<card v-else :card="round.black_card"
+							      :style="{transform:'rotateZ('+ blackCardAngle +'deg)'}" size="xs"/>
+						</div>
+						<div class="flex-1 flex items-center justify-center">
+							<div v-for="(cards, player_id) in round.played_cards" :key="parseInt(player_id)"
+							     class="inline-block mb-6 mx-6">
+								<div v-if="round.state.startsWith('reveal:')" class="flex mb-4">
+									<card v-for="(card,j) in cards" :key="j" :card="getRevealedCard(card, parseInt(player_id))"
+									      :class="{'cursor-pointer': isJuge() && !isPlayerRevealed({id:parseInt(player_id)})}"
+									      @click.native="revealPlayer({id:parseInt(player_id)})"
+									      size="sm" :style="{transform:'rotateZ('+ ((j * 8)-4) +'deg)'}"/>
+								</div>
+								<div v-else class="flex mb-4"
+								     @mouseenter="hoveredPlayer = isJuge() && round.state === 'select:winner' ? player_id : null"
+								     @mouseleave="hoveredPlayer = null"
+								>
+									<card v-for="(card,j) in cards" :key="j"
+									      :card="getRevealedCard(card, parseInt(player_id))"
+									      :class="{
+									      	'cursor-pointer': isJuge() && round.state === 'select:winner',
+									        'border-2 border-blue-500':hoveredPlayer === player_id || parseInt(player_id) === round.winner_id
+									      }"
+									      @click.native="selectWinner({player_id:parseInt(player_id)})"
+									      size="sm" :style="{transform:'rotateZ('+ ((j * 8)-4) +'deg)'}"/>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -268,19 +272,20 @@
 					})
 			},
 			getRevealedCard(card, player_id) {
-				if (!this.$store.getters.isPlayerRevealed({id: player_id}))
-					return {};
+				const c = {};
 
-				return {
-					text: card.text,
-					contributor: {
-						username: this.$store.getters.getPlayer(player_id).username
-					}
-				}
+				if (this.$store.getters.isPlayerRevealed({id: player_id}))
+					c.text = card.text;
+
+				if (this.$store.state.round.state === "completed")
+					c.contributor = {username: this.$store.getters.getPlayer(player_id).username}
+
+				return c;
 			},
 			selectWinner({player_id}) {
 				if (this.loading) return;
 				if (!this.$store.getters.isJuge()) return;
+				if (this.$store.state.round.state !== 'select:winner') return;
 
 				this.loading = true;
 
