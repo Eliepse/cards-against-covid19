@@ -23,6 +23,7 @@ use Illuminate\Support\Str;
  * @property array $players_order
  * @property int $max_players
  * @property int $hand_size
+ * @property int $winner_at
  * Relations
  * @property User $host
  * @property User|null $juge

@@ -301,7 +301,6 @@ class RoomController
 	public function selectRoundWinner(SelectRoundWinnerRequest $request, Room $room)
 	{
 		$this->authorize("selectWinner", $room);
-		$user = $request->user();
 		/** @var User $player */
 		$player = $room->players->find($request->get('player_id'));
 
@@ -319,7 +318,14 @@ class RoomController
 		$room->round->state = RoomRound::STATE_COMPLETED;
 		$room->round->save();
 
-		broadcast(new PlayerWonRoundEvent($room, $player));
+		// If a player won the game (not just the round)
+		if ($room->players->first(fn(User $player) => $player->pivot->score >= $room->winner_at)) {
+			$room->state = Room::STATE_TERMINATED;
+			$room->save();
+		} else {
+			broadcast(new PlayerWonRoundEvent($room, $player));
+		}
+
 		broadcast(new StateChangedEvent($room));
 
 		return [

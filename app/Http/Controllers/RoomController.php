@@ -45,15 +45,19 @@ class RoomController extends \Illuminate\Routing\Controller
 
 		// TODO: terminate room if not updated after a while (use a middleware to set it up on all routes)
 
-		$this->authorize('join', $room);
-
-//		$cache_key = "App.Room.{$room->id}";
-
-		// Add player and broadcast only once
-		if (!$room->players->firstWhere("id", $user->id)) {
-			$room->players()->syncWithoutDetaching($user);
-			broadcast(new PlayerJoinedEvent($room, $user))->toOthers();
+		if($room->isTerminated()) {
+			$this->authorize('view', $room);
+			return view("room.show", ["room" => $room]);
 		}
+
+			$this->authorize('join', $room);
+	//		$cache_key = "App.Room.{$room->id}";
+
+			// Add player and broadcast only once
+			if (!$room->players->firstWhere("id", $user->id)) {
+				$room->players()->syncWithoutDetaching($user);
+				broadcast(new PlayerJoinedEvent($room, $user))->toOthers();
+			}
 
 		return view("room.show", ["room" => $room]);
 	}
