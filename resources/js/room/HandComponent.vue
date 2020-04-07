@@ -131,13 +131,13 @@
 
 <style scoped>
 	.hand-cards {
-		margin-bottom: -1%;
+		margin-bottom: -.5em;
 		transition: transform 300ms ease-out;
 	}
 
 
 	.hand--hide .hand-cards {
-		margin-bottom: -9%;
+		margin-bottom: -6em;
 	}
 
 
