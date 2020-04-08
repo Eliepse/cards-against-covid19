@@ -1,0 +1,32 @@
+@import "~tailwindcss/base.css";
+
+@import "fonts";
+
+a:hover,
+a:focus {
+	color: #ffec99;
+}
+
+a:active {
+	color: #FFD43B;
+}
+
+.public {
+	height: 100vh;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	font-size: 1em;
+	background-color: #E03131;
+	background-position: center;
+	background-size: cover;
+	font-family: Savate, sans-serif;
+	color: #212529;
+}
+
+@import "buttons";
+@import "public/card";
+@import "public/welcome";
+@import "public/login";
+@import "public/register";

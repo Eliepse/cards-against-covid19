@@ -1,0 +1,38 @@
+.btn {
+	font-size: 1.125em;
+	padding: .625em .75em;
+	border-radius: .375em;
+	color: #212529;
+	background-color: #f8f9fa;
+	transition: transform 150ms;
+}
+
+.btn:hover,
+.btn:focus {
+	color: #212529;
+	background-color: #dee2e6;
+	transform: scale(1.02);
+}
+
+.btn:active {
+	color: #212529;
+	background-color: #f8f9fa;
+	transform: scale(1);
+}
+
+.btn--black {
+	color: #f8f9fa;
+	background-color: #212529;
+
+	&:hover,
+	&:focus {
+		color: #f8f9fa;
+		background-color: #495057;
+	}
+
+	&:active {
+		color: #f8f9fa;
+		background-color: #212529;
+	}
+
+}

@@ -1,34 +1,12 @@
-@import "fonts";
 
-html,
-body,
-p {
-	margin: 0;
-	padding: 0;
-}
-
-a {
-	color: inherit;
-	cursor: pointer;
-}
-
-a:hover,
-a:focus {
-	color: #ffec99;
-}
-
-a:active {
-	color: #FFD43B;
-}
-
-.welcome {
+.public--welcome {
 	height: 100vh;
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	font-size: 1em;
 	background-color: #E03131;
-	background-image: url('../img/welcome-background.svg');
+	background-image: url('../../img/welcome-background.svg');
 	background-position: center;
 	background-size: cover;
 	font-family: Savate, sans-serif;
@@ -67,7 +45,7 @@ a:active {
 }
 
 @media screen and (min-width: 1250px) {
-	.welcome {
+	.public--welcome {
 		font-size: 1.3vw;
 	}
 }

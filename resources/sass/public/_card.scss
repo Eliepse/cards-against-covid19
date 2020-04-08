@@ -1,0 +1,90 @@
+.public--login {
+	.card {
+		transform: rotate(-2deg);
+	}
+}
+
+.card {
+	position: relative;
+	width: 100%;
+	max-width: 20em;
+	padding: 1.875em 1.5em;
+	background-color: #f8f9fa;
+	border-radius: .375em;
+	box-shadow: 0 6px 12px rgba(52, 58, 64, 0.26);
+
+	.btn {
+		box-shadow: 0 4px 18px rgba(52, 58, 64, 0.3);
+	}
+}
+
+.card__title {
+	margin-bottom: .875em;
+	font-size: 2em;
+	color: #F59F00;
+}
+
+.card__field {
+	color: #868E96;
+	margin-bottom: 1em;
+
+	label {
+		font-size: 1em;
+	}
+
+	input {
+		margin: .5em 0;
+		padding: .5em .875em;
+		border: 1px solid #868E96;
+		border-radius: .375em;
+		background: none;
+		color: #212529;
+	}
+
+	input[type=text],
+	input[type=password] {
+		width: 100%;
+	}
+
+	input[type=checkbox] {
+	}
+}
+
+.card__field--error {
+	input {
+		border: 2px solid #E03131;
+	}
+}
+
+.card__field-message {
+	line-height: 1.15em;
+	color: #E03131;
+}
+
+.card__btn--tilted {
+	position: absolute;
+	right: 1em;
+	bottom: -1.25em;
+	transform: rotate(2deg);
+}
+
+.card--dark {
+	background-color: #212529;
+
+	.card__title {
+		color: #FFD43B;
+	}
+
+	.card__field {
+		color: #CED4DA;
+
+		input {
+			color: #f8f9fa;
+			border: 1px solid #CED4DA;
+		}
+	}
+
+	.card__field-message {
+		color: #ff8787;
+	}
+}
