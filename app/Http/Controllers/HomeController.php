@@ -33,7 +33,7 @@ class HomeController extends Controller
 
 		$room = $user->playedRooms()
 			->where("state", "!=", Room::STATE_TERMINATED)
-			->first(['id', 'url']);
+			->first(['id', 'url', 'created_at']);
 
 		if ($room && $room->isStale()) {
 			(new TerminateRoomAction())($room);
