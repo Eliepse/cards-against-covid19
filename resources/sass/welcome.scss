@@ -1,0 +1,73 @@
+@import "fonts";
+
+html,
+body,
+p {
+	margin: 0;
+	padding: 0;
+}
+
+a {
+	color: inherit;
+	cursor: pointer;
+}
+
+a:hover,
+a:focus {
+	color: #ffec99;
+}
+
+a:active {
+	color: #FFD43B;
+}
+
+.welcome {
+	height: 100vh;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: 1em;
+	background-color: #E03131;
+	background-image: url('../img/welcome-background.svg');
+	background-position: center;
+	background-size: cover;
+	font-family: Savate, sans-serif;
+	color: #212529;
+}
+
+.welcome__center {
+	transform: rotate(-7deg);
+}
+
+.welcome__title {
+	margin: 0;
+	font-size: 4em;
+	line-height: 1.19em;
+	color: #FFD43B;
+}
+
+.welcome__playBtn {
+	display: block;
+	margin-top: 1em;
+	font-size: 1.325em;
+	text-decoration: none;
+	color: #F8F9FA;
+}
+
+.welcome__notes {
+	position: fixed;
+	left: 2.14em;
+	bottom: 1.71em;
+	font-size: .875rem;
+	line-height: 1.29em;
+
+	a {
+		text-decoration: underline;
+	}
+}
+
+@media screen and (min-width: 1250px) {
+	.welcome {
+		font-size: 1.3vw;
+	}
+}

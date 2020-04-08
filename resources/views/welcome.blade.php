@@ -9,24 +9,24 @@
 
 	<title>{{ config('app.name', 'Cards Against COVID-19') }}</title>
 
-	<!-- Scripts -->
-	<script src="{{ asset('js/app.js') }}" defer></script>
-
 	<!-- Styles -->
-	<link href="{{ asset('css/app.css') }}" rel="stylesheet">
+	<link href="{{ asset('css/welcome.css') }}" rel="stylesheet">
 </head>
-<body class="min-h-screen bg-gray-100">
-@include("layouts.navigation")
-<div id="app" class="min-h-screen pt-12 flex items-center justify-center flex-col">
-	<h1 class="text-4xl mb-4 text-center">Cards Against COVID-19</h1>
-	<p class="text-center">Un jeu confiné par Eliepse et agrémenté par tous !</p>
-	<hr class="max-w-xs my-8">
-	<p class="text-gray-700 text-sm text-center">
+<body class="welcome">
+<div class="welcome__center">
+	<h1 class="welcome__title">
+		Cards<br>
+		Against<br>
+		COVID-19
+	</h1>
+	<a class="welcome__playBtn" href="{{ route('home') }}">Jouer&nbsp;→</a>
+</div>
+<div class="welcome__notes">
+	<p>
+		Un jeu confiné par Eliepse et agrémenté par tous !<br>
 		Ce jeu est basé sur
 		<cite>
-			<a href="https://www.cardsagainsthumanity.com"
-			   class="underline hover:text-blue-700"
-			   rel="noreferrer">
+			<a href="https://www.cardsagainsthumanity.com" rel="noreferrer">
 				Cards Against Humanity.
 			</a>
 		</cite>
