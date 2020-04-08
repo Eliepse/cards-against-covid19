@@ -4,6 +4,7 @@
 namespace App\Http\Controllers;
 
 
+use App\Actions\TerminateRoomAction;
 use App\Events\Room\PlayerJoinedEvent;
 use App\Events\Room\PlayerLeftEvent;
 use App\Http\Requests\StoreRoomRequest;
@@ -43,21 +44,22 @@ class RoomController extends \Illuminate\Routing\Controller
 			->without(['host'])
 			->firstOrFail(['id', 'url', 'max_players', 'state', 'host_id']);
 
-		// TODO: terminate room if not updated after a while (use a middleware to set it up on all routes)
+		if($room->isStale()) {
+			(new TerminateRoomAction())($room);
+		}
 
-		if($room->isTerminated()) {
+		if ($room->isTerminated()) {
 			$this->authorize('view', $room);
 			return view("room.show", ["room" => $room]);
 		}
 
-			$this->authorize('join', $room);
-	//		$cache_key = "App.Room.{$room->id}";
+		$this->authorize('join', $room);
 
-			// Add player and broadcast only once
-			if (!$room->players->firstWhere("id", $user->id)) {
-				$room->players()->syncWithoutDetaching($user);
-				broadcast(new PlayerJoinedEvent($room, $user))->toOthers();
-			}
+		// Add player and broadcast only once
+		if (!$room->players->firstWhere("id", $user->id)) {
+			$room->players()->syncWithoutDetaching($user);
+			broadcast(new PlayerJoinedEvent($room, $user))->toOthers();
+		}
 
 		return view("room.show", ["room" => $room]);
 	}
@@ -135,11 +137,7 @@ class RoomController extends \Illuminate\Routing\Controller
 	{
 		$this->authorize("terminate", $room);
 
-		$room->state = Room::STATE_TERMINATED;
-		$room->round->delete();
-		$room->dump->delete();
-		$room->hands->delete();
-		$room->save();
+		(new TerminateRoomAction())($room);
 
 		return redirect()->action([HomeController::class, 'index']);
 	}

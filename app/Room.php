@@ -141,4 +141,9 @@ class Room extends Model
 		return $this->state === self::STATE_TERMINATED;
 	}
 
+
+	public function isStale(): bool
+	{
+		return $this->created_at->clone()->addHours(16)->isPast();
+	}
 }

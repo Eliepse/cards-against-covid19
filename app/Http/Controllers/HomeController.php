@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\TerminateRoomAction;
 use App\Card;
 use App\Room;
 use App\User;
-use Illuminate\Http\Request;
+use Illuminate\Contracts\Support\Renderable;
 
 class HomeController extends Controller
 {
@@ -23,7 +24,7 @@ class HomeController extends Controller
 	/**
 	 * Show the application dashboard.
 	 *
-	 * @return \Illuminate\Contracts\Support\Renderable
+	 * @return Renderable
 	 */
 	public function index()
 	{
@@ -33,6 +34,11 @@ class HomeController extends Controller
 		$room = $user->playedRooms()
 			->where("state", "!=", Room::STATE_TERMINATED)
 			->first(['id', 'url']);
+
+		if ($room && $room->isStale()) {
+			(new TerminateRoomAction())($room);
+			$room = null;
+		}
 
 		return view('home', [
 			"user" => $user,
