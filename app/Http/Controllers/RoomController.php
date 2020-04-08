@@ -42,7 +42,7 @@ class RoomController extends \Illuminate\Routing\Controller
 		$room = Room::query()
 			->where('url', $url)
 			->without(['host'])
-			->firstOrFail(['id', 'url', 'max_players', 'state', 'host_id']);
+			->firstOrFail(['id', 'url', 'max_players', 'state', 'host_id', 'created_at']);
 
 		if($room->isStale()) {
 			(new TerminateRoomAction())($room);
